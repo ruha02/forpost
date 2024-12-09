@@ -1,0 +1,69 @@
+services:
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: ${PROJECT_NAME}_api
+    depends_on:
+      pgsql:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=${PGSQL_URL}
+      - MEDIA_URL=${API_MEDIA_URL}
+      - MEDIA_PATH=${API_MEDIA_PATH}
+      - BASE_URL=${API_BASE_URL}
+      - SECRET_KEY=${API_SECRET_KEY}
+      - ALGORITHM=${API_ALGORITHM}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${API_ACCESS_TOKEN_EXPIRE_MINUTES}
+      - REFRESH_TOKEN_EXPIRE_MINUTES=${API_REFRESH_TOKEN_EXPIRE_MINUTES}
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_period: 10s
+      test: curl --fail http://api:9000/healthcheck || exit 1
+      timeout: 30s
+    image: api
+    labels:
+      org.label-schema.group: ${PROJECT_NAME}
+    ports:
+      - 9000:9000
+    volumes:
+      - ./apps/api/media:/files
+      - ./apps/api:/app
+  pgsql:
+    container_name: ${PROJECT_NAME}_pgsql
+    environment:
+      - POSTGRES_USER=${PGSQL_USERNAME}
+      - POSTGRES_PASSWORD=${PGSQL_PASSWORD}
+      - PGDATA=${PGSQL_DATA}
+      - POSTGRES_DB=${PGSQL_DATABASE}
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test:
+        - CMD-SHELL
+        - pg_isready -U ${PGSQL_USERNAME} -d ${PGSQL_DATABASE}
+      timeout: 30s
+    image: postgres
+    labels:
+      org.label-schema.group: ${PROJECT_NAME}
+    ports:
+      - 5432:5432
+    restart: unless-stopped
+    volumes:
+      - ./apps/pgsql/data:/data
+  # web:
+  #   build:
+  #     context: ./apps/web
+  #     dockerfile: Dockerfile
+  #   container_name: ${PROJECT_NAME}_web
+  #   environment:
+  #   - REACT_APP_API_ADDRESS=${API_BASE_URL_FRONT}
+  #   image: api
+  #   labels:
+  #     org.label-schema.group: ${PROJECT_NAME}
+  #   ports:
+  #   - 3000:3000
+  #   volumes:
+  #   - ./apps/api/media:/files
+  #   - ./apps/web:/app

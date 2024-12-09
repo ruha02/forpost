@@ -1,0 +1,13 @@
+{
+    "token": {
+        "fontFamily": "Raleway"
+    },
+    "components": {
+        "Layout": {
+            "headerBg": "#1C232B",
+            "headerColor": "#FFFFFF",
+            "headerPadding": "0 25px",
+            "footerBg": "#1C232B"
+        }
+    }
+}
