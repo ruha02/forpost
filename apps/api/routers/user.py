@@ -10,18 +10,21 @@ from services import (
     create_user,
     count_user,
     update_user,
-    delete_user
+    delete_user,
 )
 
 
 router = APIRouter(prefix="/user", tags=["User"])
+
 
 @router.post("/", response_model=UserRead)
 def route_create(
     create: UserCreate,
     db: Session = Depends(get_db),
 ) -> UserRead:
-    return create_user(db=db, create=create)
+    user = create_user(db=db, create=create)
+    print(f"{'*'*20}{user}")
+    return user
 
 
 @router.get("/", response_model=list[UserReadList])
@@ -47,7 +50,7 @@ def route_get_one(
 def route_count(
     db: Session = Depends(get_db),
 ) -> int:
-    return  count_user(db=db)
+    return count_user(db=db)
 
 
 @router.patch("/{id}", response_model=UserRead)

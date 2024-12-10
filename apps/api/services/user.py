@@ -3,11 +3,22 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from models import User
 from schemas import UserCreate, UserRead, UserReadList, UserUpdate
+from .auth import PWD_CONTEXT
 
 
 def get_user(db: Session, id: int) -> UserRead:
     try:
         result = db.query(User).filter(User.id == id).first()
+    except Exception as err:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(err)
+        )
+    return result
+
+
+def get_user_by_email(db: Session, email: str) -> UserRead:
+    try:
+        result = db.query(User).filter(User.email == email).first()
     except Exception as err:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(err)
@@ -28,16 +39,19 @@ def get_users(
 
 
 def create_user(db: Session, create: UserCreate) -> UserRead:
-    try:
-        db_instance = User(**create.model_dump())
-        db.add(db_instance)
-        db.commit()
-        db.refresh(db_instance)
-    except Exception as error:
+    if get_user_by_email(db, create.email):
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(error)
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User already exists",
         )
-    return db_instance
+    d_user = create.model_dump()
+    d_user["hashed_password"] = PWD_CONTEXT.hash(create.password)
+    del d_user["password"]
+    db_user = User(**d_user)
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return UserRead.model_validate(db_user)
 
 
 def count_user(db: Session) -> int:
