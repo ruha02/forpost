@@ -13,7 +13,6 @@ from routers import (
     AnswerRouter,
     AuthRouter,
 )
-import os
 
 app = FastAPI(
     title="ФОРПОСТ",

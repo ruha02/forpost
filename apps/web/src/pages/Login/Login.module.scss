@@ -1,0 +1,19 @@
+
+.container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.formContainer {
+    width: 400px;
+    min-height: 400px;
+    display: flex;
+    justify-items: center;
+    flex-direction: column;
+    border:2px #001529 solid;
+    border-top-right-radius: 64px;
+    border-bottom-left-radius: 64px;
+}
