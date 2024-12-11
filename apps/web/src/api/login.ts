@@ -1,6 +1,6 @@
 import { fetchHandler } from ".";
 
-export async function fetchLogin(payload: Api.Request.Login) {
+export async function fetchLogin<Api.Response.Login>(payload: Api.Request.Login) {
 	const formData = new URLSearchParams();
 
 	for (const [key, value] of Object.entries(payload)) {
