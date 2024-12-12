@@ -55,22 +55,23 @@ if __name__ == "__main__":
     from schemas import UserCreate
 
     db = get_db().__next__()
-    if not get_user_by_email(db, "admin@example.com"):
+    if get_user_by_email(db, "admin@forpost.ru") is None:
+
         create_user(
             db=db,
             create=UserCreate(
-                email="admin@example.com",
+                email="admin@forpost.ru",
                 password="admin",
                 is_active=True,
                 is_superuser=True,
                 is_verified=True,
             ),
         )
-    if not get_user_by_email(db, "user@example.com"):
+    if get_user_by_email(db, "user@forpost.ru") is None:
         create_user(
             db=db,
             create=UserCreate(
-                email="user@example.com",
+                email="user@forpost.ru",
                 password="user",
                 is_active=True,
                 is_superuser=False,

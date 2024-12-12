@@ -12,7 +12,7 @@ from services import (
     update_user,
     delete_user,
 )
-
+from depends import current_active_user
 
 router = APIRouter(prefix="/user", tags=["User"])
 
@@ -68,3 +68,10 @@ def route_delete(
     db: Session = Depends(get_db),
 ) -> SuccessResult:
     return delete_user(db=db, id=id)
+
+
+@router.get("/me/", response_model=UserRead)
+def route_get_me(
+    current_user: UserRead = Depends(current_active_user),
+) -> UserRead:
+    return current_user

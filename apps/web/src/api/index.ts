@@ -15,6 +15,16 @@ export async function fetchHandler<T>(
 ): Promise<Api.Response<T>> {
     try {
 
+        const token = localStorage.getItem('accessToken');
+        if (token) {
+            init = {
+                ...init,
+                headers: {
+                    ...init?.headers,
+                    Authorization: `Bearer ${token}`,
+                },
+            };
+        }
         const response = await fetch((process.env.REACT_APP_API_URL || 'http://localhost:9000/') + input, init);
 
         const data = await response.json();

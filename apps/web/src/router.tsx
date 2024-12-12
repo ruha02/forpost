@@ -1,119 +1,72 @@
 import { Navigate, createBrowserRouter } from 'react-router-dom';
 import Main from './Main';
+import { Login } from './pages/Login';
+import { useAppSelector } from './hooks/useAppSelector'
+import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { SpinLoader } from './components/SpinLoader'
+import { InfoSystem } from './pages/InfoSystem';
+import { User } from './pages/User';
+import { Source } from './pages/Source';
+import { Question } from './pages/Question';
 
-// import { Systems,  System, SystemEdit } from './pages/System';
+const ProtectedRoute = ({ children, is_superuser }: { children: any; is_superuser: boolean }) => {
+	const user: Api.Response.UserRead = useAppSelector((state: any) => state.user.data)
+	const nav = useNavigate()
+	const [data, setData] = useState(<SpinLoader />)
 
-// import { Users,  User, UserEdit } from './pages/User';
+	useEffect(() => {
 
-// import { Sources,  Source, SourceEdit } from './pages/Source';
-
-// import { Questions,  Question, QuestionEdit } from './pages/Question';
-
-// import { Answers,  Answer, AnswerEdit } from './pages/Answer';
+		if (user) {
+			setData(children)
+		} else {
+			nav('/')
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
+	return data
+}
 
 
 export const router = createBrowserRouter([
 	{
 		path: '/',
 		element: <Main />,
-		// children: [
+		children: [
+			{
+				path: '/info_system',
+				element: (
+					<ProtectedRoute is_superuser={false}>
+						<InfoSystem />
+					</ProtectedRoute>
+				),
+			},
 
-		// 	{
-		// 		path: '/system',
-		// 		element: (
-		// 			<SystemList />
-		// 		),
-		// 	},
-		// 	{
-		// 		path: '/system/:id',
-		// 		element: (
-		// 			<System />
-		// 		),
-		// 	},
-		// 	{
-		// 		path: '/system/:id/edit',
-		// 		element: (
-		// 			<SystemEdit />
-		// 		),
-		// 	},
-
-		// 	{
-		// 		path: '/user',
-		// 		element: (
-		// 			<UserList />
-		// 		),
-		// 	},
-		// 	{
-		// 		path: '/user/:id',
-		// 		element: (
-		// 			<User />
-		// 		),
-		// 	},
-		// 	{
-		// 		path: '/user/:id/edit',
-		// 		element: (
-		// 			<UserEdit />
-		// 		),
-		// 	},
-
-		// 	{
-		// 		path: '/source',
-		// 		element: (
-		// 			<SourceList />
-		// 		),
-		// 	},
-		// 	{
-		// 		path: '/source/:id',
-		// 		element: (
-		// 			<Source />
-		// 		),
-		// 	},
-		// 	{
-		// 		path: '/source/:id/edit',
-		// 		element: (
-		// 			<SourceEdit />
-		// 		),
-		// 	},
-
-		// 	{
-		// 		path: '/question',
-		// 		element: (
-		// 			<QuestionList />
-		// 		),
-		// 	},
-		// 	{
-		// 		path: '/question/:id',
-		// 		element: (
-		// 			<Question />
-		// 		),
-		// 	},
-		// 	{
-		// 		path: '/question/:id/edit',
-		// 		element: (
-		// 			<QuestionEdit />
-		// 		),
-		// 	},
-
-		// 	{
-		// 		path: '/answer',
-		// 		element: (
-		// 			<AnswerList />
-		// 		),
-		// 	},
-		// 	{
-		// 		path: '/answer/:id',
-		// 		element: (
-		// 			<Answer />
-		// 		),
-		// 	},
-		// 	{
-		// 		path: '/answer/:id/edit',
-		// 		element: (
-		// 			<AnswerEdit />
-		// 		),
-		// 	},
-
-		// ],
+			{
+				path: '/user',
+				element: (
+					<ProtectedRoute is_superuser={true}>
+						<User />
+					</ProtectedRoute>
+				),
+			},
+			{
+				path: '/source',
+				element: (
+					<ProtectedRoute is_superuser={true}>
+						<Source />
+					</ProtectedRoute>
+				),
+			},
+			{
+				path: '/question',
+				element: (
+					<ProtectedRoute is_superuser={true}>
+						<Question />
+					</ProtectedRoute>
+				),
+			},
+		],
 	},
 	{
 		path: '/login',
@@ -123,4 +76,12 @@ export const router = createBrowserRouter([
 		path: '*',
 		element: <Navigate to='/' />,
 	},
-]);
+], {
+	future: {
+		v7_fetcherPersist: true,
+		v7_normalizeFormMethod: true,
+		v7_partialHydration: true,
+		v7_relativeSplatPath: true,
+		v7_skipActionErrorRevalidation: true,
+	}
+});

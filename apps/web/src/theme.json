@@ -7,7 +7,19 @@
             "headerBg": "#1C232B",
             "headerColor": "#FFFFFF",
             "headerPadding": "0 25px",
+            "headerHeight": 60,
             "footerBg": "#1C232B"
+        },
+        "Menu": {
+            "itemBg": "#1C232B",
+            "itemColor": "#FFFFFF",
+            "itemHoverColor": "#FFFFFF",
+            "itemSelectedColor": "#FFFFFF",
+            "itemSelectedBg": "#FFFFFF",
+            "horizontalItemSelectedColor": "#FFFFFF",
+            "colorPrimaryBorder": "#ffffff",
+            "activeBarBorderWidth": 0,
+            "lineHeight": 0
         }
     }
 }

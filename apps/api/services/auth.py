@@ -3,7 +3,7 @@ from core.settings import get_settings
 from fastapi_users import BaseUserManager, IntegerIDMixin
 from fastapi import Depends
 from core.database import get_db
-from fastapi_users.db import SQLAlchemyUserDatabase
+from fastapi_users_db_sync_sqlalchemy import SQLAlchemyUserDatabase
 from models import User
 from fastapi_users import FastAPIUsers
 from passlib.context import CryptContext
@@ -15,7 +15,7 @@ from fastapi_users.authentication import (
 
 def get_jwt_strategy() -> JWTStrategy:
     return JWTStrategy(
-        secret=settings.SECRET_KEY,
+        secret=settings.secret_key,
         lifetime_seconds=settings.access_token_expire_minutes * 60,
     )
 
@@ -30,7 +30,8 @@ auth_backend = AuthenticationBackend(
 )
 
 
-def get_user_db(session=Depends(get_db)):
+async def get_user_db(session=Depends(get_db)):
+
     yield SQLAlchemyUserDatabase(session, User)
 
 
@@ -39,7 +40,7 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
     verification_token_secret = settings.secret_key
 
 
-def get_user_manager(user_db=Depends(get_user_db)):
+async def get_user_manager(user_db=Depends(get_user_db)):
     yield UserManager(user_db)
 
 

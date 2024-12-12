@@ -1,7 +1,7 @@
 
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { Button, Flex, Form, Input, Typography, message } from 'antd';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { fetchGetUserMe, fetchLogin } from '../../api/login'
@@ -13,11 +13,9 @@ const onFinishFailed = (errorInfo: any) => {
     console.log('Failed:', errorInfo);
 };
 
-const Login: React.FC = () => {
+const Login: React.FC = ({ callback_url = '/info_systems' }: { callback_url?: string }) => {
     const [loading, setLoading] = useState(false);
-
     const dispatch = useDispatch();
-
     const [messageApi, contextHolder] = message.useMessage({ duration: 5 });
     const navigate = useNavigate();
 
@@ -35,34 +33,47 @@ const Login: React.FC = () => {
         });
     };
 
+    const checkMe = async () => {
+        console.log(callback_url);
+
+        const { data, isError } = await fetchGetUserMe()
+        if (isError) {
+            console.error('Me error');
+            return;
+        }
+        dispatch(setUser(data));
+        navigate(callback_url);
+    }
+
     const onFinish = async (values: any) => {
         setLoading(true);
-        const me = await fetchGetUserMe()
-        if (me.isError) {
-            const { data, isError } = await fetchLogin(values);
-            if (isError) {
-                error();
-                setLoading(false);
-                return;
-            }
-            dispatch(setUser(data.user));
-            success();
+        const { data, isError } = await fetchLogin(values);
+        if (isError) {
+            error();
             setLoading(false);
-            localStorage.setItem('accessToken', data.access_token);
-            localStorage.setItem('refreshToken', data.refresh_token);
-            await fetchEventAdd('system', 'Вход в систему')
+
+            return;
         }
-        navigate('/')
+        localStorage.setItem('accessToken', data.access_token);
+        setLoading(false);
+        success();
+        navigate(callback_url);
     };
+
+    useEffect(() => {
+        checkMe();
+    }, [loading]);
+
+
 
     return (
         <div className={styles.container}>
             <div className={styles.formContainer}>
                 <Flex vertical align='center' style={{ margin: '32px' }}>
-                    <img src={logo} alt='' width='64px' style={{ borderRadius: '16px' }} />
-                    <Typography.Title level={3} style={{ textAlign: 'center' }}>
-                        НаБорт
-                    </Typography.Title>
+                    <img src={logo} alt='' width='128px' />
+                    <div className={styles.caption} style={{ textAlign: 'center' }}>
+                        ФОРПОСТ
+                    </div>
                 </Flex>
 
                 <Form

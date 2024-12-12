@@ -1,0 +1,1 @@
+export { default as InfoSystem } from './InfoSystem'

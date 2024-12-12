@@ -39,13 +39,101 @@ declare namespace Api {
             result: boolean;
         }
 
-        export interface User {
+        export interface UserRead {
             email: string;
             id: number;
             is_active: boolean;
             is_superuser: boolean;
             is_verified: boolean;
         }
+
+        export interface UserReadList {
+            email: string;
+            id: number;
+            is_active: boolean;
+            is_superuser: boolean;
+            is_verified: boolean;
+        }
+
+        export interface UserCreate {
+            email: string;
+            password: string;
+            is_active?: boolean;
+            is_superuser?: boolean;
+            is_verified?: boolean;
+        }
+
+
+        export interface SystemRead {
+            id: number
+            create_at: string;
+            name: string;
+            description?: string
+            repo?: string
+            report: string
+            owner: UserRead
+        }
+
+        export interface SystemReadList {
+            id: number
+            create_at: string;
+            name: string;
+            repo?: string
+            report: string
+            owner: UserRead
+        }
+
+        export interface SystemCreate {
+            name: string;
+            owner: UserRead
+        }
+
+        export interface SourceRead {
+            id: number
+            name: string;
+            url?: string
+        }
+
+        export interface SourceReadList {
+            id: number
+            name: string;
+        }
+
+        export interface SourceCreate {
+            name: string;
+        }
+
+        export interface QuestionRead {
+            id: number
+            question: string;
+            source?: SourceRead
+        }
+
+        export interface QuestionReadList {
+            id: number
+            question: string;
+        }
+
+        export interface QuestionCreate {
+            question: string;
+        }
+
+        export interface AnswerRead {
+            id: number
+            answer: string;
+            sec_value?: number
+        }
+
+        export interface AnswerReadList {
+            id: number
+            answer: string;
+            sec_value?: number
+        }
+
+        export interface AnswerCreate {
+            answer: string;
+        }
+
         export type Users = Array<User>;
 
 

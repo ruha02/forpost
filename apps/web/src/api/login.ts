@@ -1,6 +1,6 @@
 import { fetchHandler } from ".";
 
-export async function fetchLogin<Api.Response.Login>(payload: Api.Request.Login) {
+export async function fetchLogin(payload: Api.Request.Login) {
 	const formData = new URLSearchParams();
 
 	for (const [key, value] of Object.entries(payload)) {
@@ -20,5 +20,6 @@ export async function fetchLogin<Api.Response.Login>(payload: Api.Request.Login)
 
 
 export async function fetchGetUserMe() {
-	return await fetchHandler<Api.Response.User>('user/me/');
+	return await fetchHandler<Api.Response.UserRead>('user/me/');
 }
+
