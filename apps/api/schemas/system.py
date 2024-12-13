@@ -1,6 +1,8 @@
-from typing import Optional
 from datetime import datetime
+from typing import Optional
+
 from pydantic import BaseModel, ConfigDict, Field
+
 from .user import UserRead
 
 
@@ -13,9 +15,9 @@ class SystemBase(BaseModel):
 
 
 class SystemCreate(BaseModel):
-    create_at: datetime = Field(description="Дата")
     name: str = Field(description="Название")
-    report: str = Field(description="Отчет")
+    description: Optional[str] = Field(description="Описание", nullable=True)
+    repo: Optional[str] = Field(description="Репозиторий", nullable=True)
 
 
 class SystemRead(SystemBase):

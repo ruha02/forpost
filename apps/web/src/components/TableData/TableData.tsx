@@ -1,22 +1,34 @@
-import { Button, Table, Typography, message } from "antd";
-import { useState, useEffect } from "react";
+import { Button, Form, message, Table, Typography } from "antd";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+
 
 
 const TableData = (props: Table.Props) => {
     const navigate = useNavigate()
     const [messageApi, contextHolder] = message.useMessage({ duration: 5 });
-
+    const [form] = Form.useForm();
     // states
     const [loading, setLoading] = useState(false);
     const [list, setList] = useState([])
+    const [data, setData] = useState<any>({});
     const [page, setPage] = useState(1)
     const [pageSize, setPageSize] = useState(10)
     const [total, setTotal] = useState(10)
     const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+    const [modalProps, setModalProps] = useState<Table.ModalW>({
+        isEdit: false,
+        open: false,
+        onOk: () => { },
+        onCancel: () => { },
+        data: [],
+        form: form,
+    });
 
     // get data
     const getList = async (params: Api.Params.Pagination) => {
+
         setLoading(true);
         const result = await props.action.get_list(params);
         if (result.isError) {
@@ -28,6 +40,18 @@ const TableData = (props: Table.Props) => {
         return result.data;
     }
 
+    const getData = async (id: number) => {
+        setLoading(true);
+        const result = await props.action.get(id);
+        if (result.isError) {
+            messageApi.error('Ошибка при получении данных');
+            setLoading(false);
+            return;
+        }
+        setLoading(false);
+        setData(result.data);
+        return result.data;
+    }
 
     // handlers
     const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
@@ -38,7 +62,29 @@ const TableData = (props: Table.Props) => {
         console.log('params', pagination, filters, sorter, extra);
     };
     const handelAdd = () => {
-        console.log('handle add');
+        setModalProps({
+            isEdit: false,
+            open: true,
+            onOk: (values: any) => {
+                console.log(values);
+
+                props.action.add(values).then((res: any) => {
+                    if (res.isError) {
+                        message.error('Ошибка создания')
+                        return
+                    }
+                    message.success('Успешно создано')
+                    setModalProps((prev: any) => ({ ...prev, open: false }))
+                    setTotal((prev) => prev + 1)
+                })
+            },
+            onCancel: () => {
+                console.log('handle cancel');
+                setModalProps((prev: any) => ({ ...prev, open: false }))
+
+            },
+            form: form
+        })
     }
 
     const handelDelete = async (ids: Array<any>) => {
@@ -111,11 +157,33 @@ const TableData = (props: Table.Props) => {
             rowSelection={rowSelection}
             onRow={(record, rowIndex) => {
                 return {
-                    onClick: event => {
-                        navigate(`${window.location.pathname}/${record['id']}`)
+                    onClick: async event => {
+                        await getData(record['id'])
+                        // setModalProps({
+                        //     isEdit: true,
+                        //     open: true,
+                        //     onOk: (values: any) => {
+                        //         props.action.add(values).then((res: any) => {
+                        //             if (res.isError) {
+                        //                 message.error('Ошибка создания')
+                        //                 return
+                        //             }
+                        //             message.success('Успешно создано')
+                        //             setModalProps((prev: any) => ({ ...prev, open: false }))
+                        //             setTotal((prev) => prev + 1)
+                        //         })
+                        //     },
+                        //     onCancel: () => {
+                        //         setModalProps((prev: any) => ({ ...prev, open: false }))
+
+                        //     },
+                        //     form: form,
+                        //     data: data
+                        // })
                     }
                 };
             }} />
+        {props.modal(modalProps)}
     </div>
     </>
 }

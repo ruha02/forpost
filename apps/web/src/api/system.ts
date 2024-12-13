@@ -1,11 +1,11 @@
-import { fetchHandler, createQueryParamsString } from ".";
+import { createQueryParamsString, fetchHandler } from ".";
 
 
-export async function getSystems (params: Api.Params) {
+export async function getSystems(params: Api.Params) {
     return await fetchHandler<Api.Response.SystemReadList[]>('system/' + createQueryParamsString(params));
 }
 
-export async function getSystem (id: number) {
+export async function getSystem(id: number) {
     return await fetchHandler<Api.Response.SystemRead>('system/' + id);
 }
 
@@ -21,6 +21,7 @@ export async function updateSystem(id: number, data: any) {
 }
 
 export async function createSystem(data: any) {
+    console.log('Create', data);
     return await fetchHandler<Api.Response.SystemRead>('system/', {
         method: 'POST',
         body: JSON.stringify(data),

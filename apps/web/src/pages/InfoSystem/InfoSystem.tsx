@@ -1,11 +1,11 @@
 
-import { useState } from 'react'
-import { message } from 'antd';
-import { getSystems, getSystem, countSystems, deleteSystem, updateSystem, createSystem } from './../../api/system'
+import { Form, Input, message, Modal } from 'antd';
 import { TableData } from '../../components/TableData';
+import { countSystems, createSystem, deleteSystem, getSystem, getSystems, updateSystem } from './../../api/system';
 
 const System: React.FC = () => {
-    const [add, setAdd] = useState(false)
+
+
     const FieldList: Table.FieldList[] = [
         {
             title: 'ID',
@@ -49,15 +49,6 @@ const System: React.FC = () => {
 
     ]
 
-    const Field: Table.Field[] = [...(FieldList.map((field) => ({
-        title: field.title,
-        render: (value: string) => <>{value}</>,
-    }))),
-    {
-        title: 'Описание',
-        render: (value: string) => <>{value}</>,
-
-    }]
 
     const action: Table.Action = {
         "add": createSystem,
@@ -93,14 +84,48 @@ const System: React.FC = () => {
         }
     ]
 
+    const get_modal = ({ isEdit, open, onOk, onCancel, data, form }: Table.ModalW) => {
+        console.log(data);
 
+        return <Modal
+            title={isEdit ? "Редактирование" : "Добавление"}
+            open={open}
+            onOk={(values) => {
+                form.validateFields().then((values: any) => {
+                    onOk(JSON.stringify(values))
+                }).catch((error: any) => {
+                    console.log(error);
+                })
+            }}
+            onCancel={() => onCancel()}
+            width={1000}
+            height={800}
+            closable={false}
+        >
+            <Form
+                form={form}
+                initialValues={isEdit ? { ...data } : undefined}
+                labelCol={{ span: 6 }}
+                wrapperCol={{ span: 16 }}>
+                <Form.Item label='Наименование' name="name" key="name">
+                    <Input />
+                </Form.Item>
+                <Form.Item label='Описание' name="description" key="description">
+                    <Input.TextArea />
+                </Form.Item>
+                <Form.Item label='Ссылка на репозиторий' name="repo" key="repo">
+                    <Input />
+                </Form.Item>
+            </Form>
+        </Modal>
+    }
 
     return <TableData
         title='Информационные системы'
-        field={Field}
         fieldList={FieldList}
         buttons={buttons}
         action={action}
+        modal={get_modal}
     />
 };
 export default System

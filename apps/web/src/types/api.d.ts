@@ -112,6 +112,7 @@ declare namespace Api {
         export interface QuestionReadList {
             id: number
             question: string;
+            answers?: AnswerRead[]
         }
 
         export interface QuestionCreate {

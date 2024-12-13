@@ -1,18 +1,24 @@
 import { BaseButtonProps } from "antd/es/button/button";
 
 declare global {
+
     namespace Table {
+        export interface ModalW {
+            isEdit: boolean;
+            open: boolean;
+            onOk: (values: any) => void;
+            onCancel: () => void;
+            data?: any;
+            form: any;
+        }
+
         export interface FieldList {
             title: string;
             dataIndex: string;
             key: string;
-            render?: (value: any) => JSX.Element | string;
+            render?: (value: any) => JSX.Element | string | any;
         }
 
-        export interface Field {
-            title: string;
-            render?: (value: any) => JSX.Element;
-        }
 
         export interface Action {
             add: (data: any) => any;
@@ -33,10 +39,9 @@ declare global {
         export interface Props {
             title: string;
             fieldList: FieldList[];
-            field: Field[];
             action: Action;
             buttons?: Button[];
-            modal?: JSX.Element
+            modal: any;
         }
 
     }
