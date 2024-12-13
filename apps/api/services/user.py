@@ -1,8 +1,9 @@
 from core.schema import SuccessResult
 from fastapi import HTTPException, status
-from sqlalchemy.orm import Session
 from models import User
 from schemas import UserCreate, UserRead, UserReadList, UserUpdate
+from sqlalchemy.orm import Session
+
 from .auth import PWD_CONTEXT
 
 
@@ -20,6 +21,7 @@ def get_user_by_email(db: Session, email: str) -> UserRead:
     try:
         result = db.query(User).filter(User.email == email).first()
     except Exception as err:
+        print(err)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(err)
         )

@@ -1,9 +1,11 @@
-import { Button, Flex, Menu, Layout, Typography, Tooltip } from 'antd';
-import React from 'react';
-import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Button, Flex, Layout, Menu, Typography } from 'antd';
+import React, { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { fetchGetUserMe } from './api/login';
 import logo from './assets/logo_white.png';
-import { useAppSelector } from './hooks/useAppSelector'
-import { useEffect, useState } from 'react'
+import { useAppSelector } from './hooks/useAppSelector';
+import { setUser } from './store/features/user/slice';
 const { Content, Footer, Header } = Layout;
 
 
@@ -11,6 +13,7 @@ const { Content, Footer, Header } = Layout;
 
 const Main: React.FC = () => {
 	const user: Api.Response.UserRead = useAppSelector((state: any) => state.user.data)
+	const dispatch = useDispatch();
 	const location = useLocation();
 	const nav = useNavigate()
 	const user_menu = [{
@@ -31,19 +34,36 @@ const Main: React.FC = () => {
 		return user && user.is_superuser ? admin_menu : user_menu
 	};
 
-	useEffect(() => {
-		if (!user) {
+	const checkMe = async () => {
+		const { data, isError } = await fetchGetUserMe()
+		if (isError) {
+			console.error('Me error');
 			nav('/login?callback_url=' + location.pathname)
+			return;
 		}
+		dispatch(setUser(data));
+	}
+
+	useEffect(() => {
 		if (location.pathname === '/') {
 			nav('/info_system')
 		}
 		console.log(user)
 	}, [user])
 
+	useEffect(() => {
+		checkMe();
+	}, []);
+
 	const onLogout = () => {
 		localStorage.removeItem('accessToken')
 		nav('/login?callback_url=' + location.pathname)
+	}
+
+	const handleMenuClick = (v: any) => {
+		console.log(v.key);
+
+		nav(v.key)
 	}
 
 	return (
@@ -55,30 +75,25 @@ const Main: React.FC = () => {
 							<img src={logo} alt='' height='48px' /><div className='logo_caption'>ФОРПОСТ</div>
 						</Flex>
 					</Link>
-
-					<Menu
-						defaultSelectedKeys={['1']}
-						defaultOpenKeys={['sub1']}
-						mode='horizontal'
-						disabledOverflow={true}
-					>
-						{getNavLinks().map((link) => (
-							<Menu.Item key={link.to} disabled={link.disabled}>
-								<Tooltip title={link.content} mouseEnterDelay={0.75} color='#000000c1'>
-									<Link
-										to={link.to}
-										key={link.to}
-									>
-										{link.content}
-									</Link>
-								</Tooltip>
-							</Menu.Item>
-						))}
-					</Menu>
-					<Flex gap={16} align='center'>
-						<Typography.Text style={{ color: "white" }}>{user && user.email}</Typography.Text>
-						<Button size='small' onClick={onLogout}>Выход</Button>
-					</Flex>
+					{user && <>
+						<Menu
+							defaultSelectedKeys={['1']}
+							defaultOpenKeys={['sub1']}
+							mode='horizontal'
+							disabledOverflow={true}
+							onClick={(item: any) => handleMenuClick(item)}
+							items={getNavLinks().map((link) => ({
+								key: link.to,
+								label: <a href={link.to}>{link.content}</a>,
+							}))}
+						>
+						</Menu>
+						<Flex gap={16} align='center'>
+							<Typography.Text style={{ color: "white" }}>{user.email}</Typography.Text>
+							<Button size='small' onClick={onLogout}>Выход</Button>
+						</Flex>
+					</>}
+					{!user && <Button size='small' onClick={() => nav('/login?callback_url=' + location.pathname)}>Вход</Button>}
 				</Flex>
 			</Header>
 			<Content style={{ margin: '24px 16px 0', overflow: 'auto' }}>
@@ -91,7 +106,7 @@ const Main: React.FC = () => {
 					<Typography.Text style={{ color: '#FFFFFF' }}> Команда Ultra, 2024	</Typography.Text>
 				</Flex>
 			</Footer>
-		</Layout>
+		</Layout >
 	);
 };
 

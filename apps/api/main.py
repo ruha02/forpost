@@ -6,12 +6,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from models import *
 from routers import (
-    SystemRouter,
-    UserRouter,
-    SourceRouter,
-    QuestionRouter,
     AnswerRouter,
     AuthRouter,
+    QuestionRouter,
+    SourceRouter,
+    SystemRouter,
+    UserRouter,
 )
 
 app = FastAPI(
@@ -50,13 +50,13 @@ if __name__ == "__main__":
     log_config = uvicorn.config.LOGGING_CONFIG
     log_config["formatters"]["access"]["fmt"] = LOG_FORMAT
     log_config["formatters"]["default"]["fmt"] = LOG_FORMAT
-    from services.user import create_user, get_user_by_email
     from core.database import get_db
     from schemas import UserCreate
+    from services.user import create_user, get_user_by_email
 
     db = get_db().__next__()
-    if get_user_by_email(db, "admin@forpost.ru") is None:
-
+    if not get_user_by_email(db, "admin@forpost.ru"):
+        print("Create admin user")
         create_user(
             db=db,
             create=UserCreate(
@@ -67,7 +67,8 @@ if __name__ == "__main__":
                 is_verified=True,
             ),
         )
-    if get_user_by_email(db, "user@forpost.ru") is None:
+    if not get_user_by_email(db, "user@forpost.ru"):
+        print("Create user user")
         create_user(
             db=db,
             create=UserCreate(

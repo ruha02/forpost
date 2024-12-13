@@ -1,10 +1,10 @@
 
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
-import { Button, Flex, Form, Input, Typography, message } from 'antd';
+import { Button, Flex, Form, Input, message } from 'antd';
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { fetchGetUserMe, fetchLogin } from '../../api/login'
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { fetchGetUserMe, fetchLogin } from '../../api/login';
 import { setUser } from '../../store/features/user/slice';
 import logo from "./../../assets/logo.png";
 import styles from './Login.module.scss';
@@ -13,11 +13,13 @@ const onFinishFailed = (errorInfo: any) => {
     console.log('Failed:', errorInfo);
 };
 
-const Login: React.FC = ({ callback_url = '/info_systems' }: { callback_url?: string }) => {
+const Login: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const dispatch = useDispatch();
     const [messageApi, contextHolder] = message.useMessage({ duration: 5 });
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const callback_url = searchParams.get('callback_url') ? searchParams.get('callback_url')?.toString() : '/info_system';
 
     const success = () => {
         messageApi.open({
@@ -34,16 +36,17 @@ const Login: React.FC = ({ callback_url = '/info_systems' }: { callback_url?: st
     };
 
     const checkMe = async () => {
-        console.log(callback_url);
-
         const { data, isError } = await fetchGetUserMe()
         if (isError) {
             console.error('Me error');
             return;
         }
         dispatch(setUser(data));
-        navigate(callback_url);
+        if (callback_url) {
+            navigate(callback_url);
+        }
     }
+
 
     const onFinish = async (values: any) => {
         setLoading(true);
@@ -51,13 +54,14 @@ const Login: React.FC = ({ callback_url = '/info_systems' }: { callback_url?: st
         if (isError) {
             error();
             setLoading(false);
-
             return;
         }
         localStorage.setItem('accessToken', data.access_token);
         setLoading(false);
         success();
-        navigate(callback_url);
+        if (callback_url) {
+            navigate(callback_url);
+        }
     };
 
     useEffect(() => {

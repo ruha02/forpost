@@ -1,14 +1,13 @@
-import { Navigate, createBrowserRouter } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Navigate, createBrowserRouter, useNavigate } from 'react-router-dom';
+import { SpinLoader } from './components/SpinLoader';
+import { useAppSelector } from './hooks/useAppSelector';
 import Main from './Main';
-import { Login } from './pages/Login';
-import { useAppSelector } from './hooks/useAppSelector'
-import { useNavigate } from 'react-router-dom'
-import { useEffect, useState } from 'react'
-import { SpinLoader } from './components/SpinLoader'
 import { InfoSystem } from './pages/InfoSystem';
-import { User } from './pages/User';
-import { Source } from './pages/Source';
+import { Login } from './pages/Login';
 import { Question } from './pages/Question';
+import { Source } from './pages/Source';
+import { User } from './pages/User';
 
 const ProtectedRoute = ({ children, is_superuser }: { children: any; is_superuser: boolean }) => {
 	const user: Api.Response.UserRead = useAppSelector((state: any) => state.user.data)
@@ -74,7 +73,7 @@ export const router = createBrowserRouter([
 	},
 	{
 		path: '*',
-		element: <Navigate to='/' />,
+		element: <Navigate to='/info_system' />,
 	},
 ], {
 	future: {
