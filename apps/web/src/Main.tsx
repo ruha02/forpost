@@ -37,7 +37,6 @@ const Main: React.FC = () => {
 	const checkMe = async () => {
 		const { data, isError } = await fetchGetUserMe()
 		if (isError) {
-			console.error('Me error');
 			nav('/login?callback_url=' + location.pathname)
 			return;
 		}
@@ -45,10 +44,9 @@ const Main: React.FC = () => {
 	}
 
 	useEffect(() => {
-		if (location.pathname === '/') {
+		if ((location.pathname === '/') || (location.pathname === '')) {
 			nav('/info_system')
 		}
-		console.log(user)
 	}, [user])
 
 	useEffect(() => {
@@ -60,11 +58,6 @@ const Main: React.FC = () => {
 		nav('/login?callback_url=' + location.pathname)
 	}
 
-	const handleMenuClick = (v: any) => {
-		console.log(v.key);
-
-		nav(v.key)
-	}
 
 	return (
 		<Layout style={{ height: '100%' }}>
@@ -77,14 +70,11 @@ const Main: React.FC = () => {
 					</Link>
 					{user && <>
 						<Menu
-							defaultSelectedKeys={['1']}
-							defaultOpenKeys={['sub1']}
 							mode='horizontal'
 							disabledOverflow={true}
-							onClick={(item: any) => handleMenuClick(item)}
 							items={getNavLinks().map((link) => ({
 								key: link.to,
-								label: <a href={link.to}>{link.content}</a>,
+								label: <Link to={link.to}>{link.content}</Link>,
 							}))}
 						>
 						</Menu>

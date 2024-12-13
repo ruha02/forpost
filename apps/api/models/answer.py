@@ -1,6 +1,7 @@
 from core.database import Base
-from sqlalchemy import Column, Integer
-from sqlalchemy import String, Integer
+from sqlalchemy import Column, Integer, String, ForeignKey
+
+from sqlalchemy.orm import relationship
 
 
 class Answer(Base):
@@ -10,4 +11,8 @@ class Answer(Base):
 
     answer = Column(String)
     sec_value = Column(Integer)
-    
+
+    question_id = Column(Integer, ForeignKey("question.id"))
+    question = relationship(
+        "Question", foreign_keys="[Answer.question_id]", back_populates="answers"
+    )

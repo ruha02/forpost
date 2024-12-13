@@ -50,35 +50,7 @@ if __name__ == "__main__":
     log_config = uvicorn.config.LOGGING_CONFIG
     log_config["formatters"]["access"]["fmt"] = LOG_FORMAT
     log_config["formatters"]["default"]["fmt"] = LOG_FORMAT
-    from core.database import get_db
-    from schemas import UserCreate
-    from services.user import create_user, get_user_by_email
 
-    db = get_db().__next__()
-    if not get_user_by_email(db, "admin@forpost.ru"):
-        print("Create admin user")
-        create_user(
-            db=db,
-            create=UserCreate(
-                email="admin@forpost.ru",
-                password="admin",
-                is_active=True,
-                is_superuser=True,
-                is_verified=True,
-            ),
-        )
-    if not get_user_by_email(db, "user@forpost.ru"):
-        print("Create user user")
-        create_user(
-            db=db,
-            create=UserCreate(
-                email="user@forpost.ru",
-                password="user",
-                is_active=True,
-                is_superuser=False,
-                is_verified=True,
-            ),
-        )
     uvicorn.run(
         "main:app", host="0.0.0.0", port=9000, reload=True, log_config=log_config
     )

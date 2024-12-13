@@ -1,6 +1,4 @@
-import { useEffect, useState } from 'react';
-import { Navigate, createBrowserRouter, useNavigate } from 'react-router-dom';
-import { SpinLoader } from './components/SpinLoader';
+import { Navigate, createBrowserRouter } from 'react-router-dom';
 import { useAppSelector } from './hooks/useAppSelector';
 import Main from './Main';
 import { InfoSystem } from './pages/InfoSystem';
@@ -8,22 +6,20 @@ import { Login } from './pages/Login';
 import { Question } from './pages/Question';
 import { Source } from './pages/Source';
 import { User } from './pages/User';
-
+import { useLocation } from 'react-router-dom';
 const ProtectedRoute = ({ children, is_superuser }: { children: any; is_superuser: boolean }) => {
 	const user: Api.Response.UserRead = useAppSelector((state: any) => state.user.data)
-	const nav = useNavigate()
-	const [data, setData] = useState(<SpinLoader />)
+	const location = useLocation()
 
-	useEffect(() => {
+	if (!user) {
+		return <Navigate to={`/login?callback_url=${location.pathname}`} replace />
+	}
 
-		if (user) {
-			setData(children)
-		} else {
-			nav('/')
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
-	return data
+	if (is_superuser && !user.is_superuser) {
+		return <Navigate to="/info_system" replace />
+	}
+
+	return children
 }
 
 

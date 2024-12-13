@@ -1,7 +1,6 @@
 {
-  "short_name": "{{ name }}",
-  "name": "{{ description }}",
-  5
+  "short_name": "ФОРПОСТ",
+  "name": "Помощник для ИБ-инженеров, программистов и менеджеров в сфере ИБ",
   "icons": [
     {
       "src": "favicon.ico",

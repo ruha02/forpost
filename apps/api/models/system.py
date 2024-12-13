@@ -13,7 +13,6 @@ class System(Base):
     name = Column(String)
     description = Column(String, nullable=True)
     repo = Column(String, nullable=True)
-    report = Column(String)
+    report = Column(String, nullable=True)
     owner_id = Column(Integer, ForeignKey("user.id"))
     owner = relationship("User", foreign_keys="[System.owner_id]")
-    

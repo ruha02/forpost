@@ -12,4 +12,4 @@ class Question(Base):
     question = Column(String)
     source_id = Column(Integer, ForeignKey("source.id"))
     source = relationship("Source", foreign_keys="[Question.source_id]")
-    
+    answers = relationship("Answer", back_populates="question")

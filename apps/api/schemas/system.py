@@ -9,22 +9,22 @@ class SystemBase(BaseModel):
     name: str = Field(description="Название")
     description: Optional[str] = Field(description="Описание", nullable=True)
     repo: Optional[str] = Field(description="Репозиторий", nullable=True)
-    report: str = Field(description="Отчет")
-    
+    report: Optional[str] = Field(description="Отчет")
+
 
 class SystemCreate(BaseModel):
     create_at: datetime = Field(description="Дата")
-name: str = Field(description="Название")
-report: str = Field(description="Отчет")
+    name: str = Field(description="Название")
+    report: str = Field(description="Отчет")
 
 
 class SystemRead(SystemBase):
     id: int
-    owner:Optional[UserRead] = Field(description="Пользователь")
+    owner: Optional[UserRead] = Field(description="Пользователь")
     model_config = ConfigDict(from_attributes=True)
 
 
-class SystemReadList(SystemBase):
+class SystemReadList(SystemRead):
     id: int
     model_config = ConfigDict(from_attributes=True)
 
@@ -36,4 +36,3 @@ class SystemUpdate(BaseModel):
     repo: Optional[str] = None
     report: Optional[str] = None
     owner_id: Optional[int] = None
-    

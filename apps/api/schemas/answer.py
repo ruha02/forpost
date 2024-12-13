@@ -5,11 +5,11 @@ from pydantic import BaseModel, ConfigDict, Field
 class AnswerBase(BaseModel):
     answer: str = Field(description="Ответ")
     sec_value: int = Field(description="Уровень безопасности")
-    
+
 
 class AnswerCreate(BaseModel):
     answer: str = Field(description="Ответ")
-sec_value: int = Field(description="Уровень безопасности")
+    sec_value: int = Field(description="Уровень безопасности", ge=1, le=5)
 
 
 class AnswerRead(AnswerBase):
@@ -25,4 +25,3 @@ class AnswerReadList(AnswerBase):
 class AnswerUpdate(BaseModel):
     answer: Optional[str] = None
     sec_value: Optional[int] = None
-    
