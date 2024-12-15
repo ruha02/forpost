@@ -234,7 +234,7 @@ def get_system_report(db: Session, id: int, user: UserRead) -> str:
                 answer = result.chat.get("messages", [])[index + 1]
                 for answer_obj in question.answers:
                     if answer_obj.answer == answer["text"]:
-                        report += f"Уровень опасности: {sec_level[answer_obj.sec_value-1]}\n\n {question.question}\n\n"
+                        report += f"{question.question}\n**Уровень опасности: {sec_level[answer_obj.sec_value-1]}**\n "
     try:
         s = HTTPSession()
         r = s.post(
