@@ -67,11 +67,11 @@ services:
     volumes:
       - ./apps/api/media:/files
       - ./apps/web:/app
-  security-scanner:
+  llm:
     build:
       context: ./apps/llm/  # Directory containing the security scanner code
       dockerfile: Dockerfile
-    container_name: ${PROJECT_NAME}_security_scanner
+    container_name: ${PROJECT_NAME}_llm
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - BASE_URL=${OPENAI_BASE_URL}
@@ -79,12 +79,12 @@ services:
       interval: 30s
       retries: 5
       start_period: 10s
-      test: curl --fail http://security-scanner:8000/health || exit 1
+      test: curl --fail http://llm:8000/health || exit 1
       timeout: 30s
-    image: security-scanner
+    image: llm
     labels:
       org.label-schema.group: ${PROJECT_NAME}
     ports:
       - "8000:8000"
     volumes:
-      - ./apps/security-scanner:/app
+      - ./apps/llm:/app
