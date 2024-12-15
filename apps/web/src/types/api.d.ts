@@ -70,7 +70,6 @@ declare namespace Api {
             name: string;
             description?: string
             repo?: string
-            report: string
             chat?: object
             owner: UserRead
         }
@@ -80,7 +79,6 @@ declare namespace Api {
             create_at: string;
             name: string;
             repo?: string
-            report: string
             owner: UserRead
         }
 

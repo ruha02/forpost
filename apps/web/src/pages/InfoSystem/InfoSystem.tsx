@@ -39,12 +39,6 @@ const System: React.FC = () => {
             render: (value: string) => <a href={value} target='_blank' rel='noreferrer'><>{value}</></a>,
         },
         {
-            title: 'Отчет',
-            dataIndex: 'report',
-            key: 'report',
-            render: (value: string) => value === null ? "Отсутствует" : <a href={value} target='_blank' rel='noreferrer'>Скачать{value}</a>,
-        },
-        {
             title: 'Автор',
             dataIndex: 'owner',
             key: 'owner',
@@ -136,7 +130,7 @@ const System: React.FC = () => {
             </>,
             <Flex align='center' justify='center' style={{ height: '100%' }}>
                 <div>
-                    {data.report ? <a href={data.report} target='_blank' rel='noreferrer'>Скачать отчет</a> : <>Очет формируется</>}
+                    Очет формируется
                 </div>
             </Flex>
         ]
@@ -187,7 +181,12 @@ const System: React.FC = () => {
                         Далее
                     </Button>}
                 </ButtonGroup>
-                <Button type="primary" onClick={() => console.log(form.getFieldsValue())}>
+                <Button type="primary" onClick={(values) => {
+                    form.validateFields().then((values: any) => {
+                        onOk(values)
+                    }).catch((error: any) => {
+                    })
+                }}>
                     Сохранить
                 </Button>
             </Flex>

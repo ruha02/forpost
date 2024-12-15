@@ -1,6 +1,7 @@
 from core.database import Base
 from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 
 class System(Base):
@@ -8,7 +9,9 @@ class System(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
-    create_at = Column(DateTime)
+    create_at = Column(
+        DateTime(timezone=True), server_default=func.now(), default=func.now()
+    )
     name = Column(String)
     description = Column(String, nullable=True)
     chat = Column(JSON, nullable=True)
