@@ -1,10 +1,17 @@
 from core.database import get_db
 from core.exception import NotFound
 from core.schema import Pagination, SuccessResult
+from depends import current_active_user, current_admin_user
 from fastapi import APIRouter, Depends
 from fastapi_filter import FilterDepends
 from filters import QuestionFilter
-from schemas import QuestionCreate, QuestionRead, QuestionReadList, QuestionUpdate
+from schemas import (
+    QuestionCreate,
+    QuestionRead,
+    QuestionReadList,
+    QuestionUpdate,
+    UserRead,
+)
 from services import (
     count_question,
     create_question,
@@ -22,6 +29,7 @@ router = APIRouter(prefix="/question", tags=["Question"])
 def route_create(
     create: QuestionCreate,
     db: Session = Depends(get_db),
+    user: UserRead = Depends(current_admin_user),
 ) -> QuestionRead:
     return create_question(db=db, create=create)
 
@@ -31,6 +39,7 @@ def route_get_all(
     db: Session = Depends(get_db),
     pagination: Pagination = Depends(Pagination),
     filter: QuestionFilter = FilterDepends(QuestionFilter),
+    user: UserRead = Depends(current_active_user),
 ) -> list[QuestionReadList]:
     return get_questions(
         db=db, offset=pagination.offset, limit=pagination.limit, filter=filter
@@ -41,6 +50,7 @@ def route_get_all(
 def route_get_one(
     id: int,
     db: Session = Depends(get_db),
+    user: UserRead = Depends(current_active_user),
 ) -> QuestionRead:
     result = get_question(db=db, id=id)
     if result is None:
@@ -52,6 +62,7 @@ def route_get_one(
 def route_count(
     db: Session = Depends(get_db),
     filter: QuestionFilter = FilterDepends(QuestionFilter),
+    user: UserRead = Depends(current_active_user),
 ) -> int:
     return count_question(db=db, filter=filter)
 
@@ -61,6 +72,7 @@ def route_update(
     id: int,
     update: QuestionUpdate,
     db: Session = Depends(get_db),
+    user: UserRead = Depends(current_admin_user),
 ) -> QuestionRead:
     return update_question(db=db, id=id, update=update)
 
@@ -69,5 +81,6 @@ def route_update(
 def route_delete(
     id: int,
     db: Session = Depends(get_db),
+    user: UserRead = Depends(current_admin_user),
 ) -> SuccessResult:
     return delete_question(db=db, id=id)

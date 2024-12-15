@@ -5,13 +5,27 @@ from core.schema import SuccessResult
 from fastapi import HTTPException, status
 from models import System
 from requests import Session as HTTPSession
-from schemas import Message, SystemCreate, SystemRead, SystemReadList, SystemUpdate
+from schemas import (
+    Message,
+    SystemCreate,
+    SystemRead,
+    SystemReadList,
+    SystemUpdate,
+    UserRead,
+)
 from sqlalchemy.orm import Session
 
 
-def get_system(db: Session, id: int) -> SystemRead:
+def get_system(db: Session, id: int, user: UserRead) -> SystemRead:
     try:
-        result = db.query(System).filter(System.id == id).first()
+        if user.is_superuser:
+            result = db.query(System).filter(System.id == id).first()
+        else:
+            result = (
+                db.query(System)
+                .filter(System.id == id, System.owner_id == user.id)
+                .first()
+            )
     except Exception as err:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(err)
@@ -20,10 +34,22 @@ def get_system(db: Session, id: int) -> SystemRead:
 
 
 def get_systems(
-    db: Session, offset: int = 0, limit: int | None = None
+    db: Session,
+    user: UserRead,
+    offset: int = 0,
+    limit: int | None = None,
 ) -> list[SystemReadList]:
     try:
-        result = db.query(System).offset(offset).limit(limit).all()
+        if user.is_superuser:
+            result = db.query(System).offset(offset).limit(limit).all()
+        else:
+            result = (
+                db.query(System)
+                .filter(System.owner_id == user.id)
+                .offset(offset)
+                .limit(limit)
+                .all()
+            )
     except Exception as err:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(err)
@@ -31,9 +57,10 @@ def get_systems(
     return result
 
 
-def create_system(db: Session, create: SystemCreate) -> SystemRead:
+def create_system(db: Session, create: SystemCreate, user: UserRead) -> SystemRead:
     try:
         db_instance = System(**create.model_dump())
+        db_instance.owner_id = user.id
         db.add(db_instance)
         db.commit()
         db.refresh(db_instance)
@@ -44,9 +71,12 @@ def create_system(db: Session, create: SystemCreate) -> SystemRead:
     return db_instance
 
 
-def count_system(db: Session) -> int:
+def count_system(db: Session, user: UserRead) -> int:
     try:
-        result = db.query(System.id).count()
+        if user.is_superuser:
+            result = db.query(System.id).count()
+        else:
+            result = db.query(System).filter(System.owner_id == user.id).count()
     except Exception as error:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(error)
@@ -54,9 +84,11 @@ def count_system(db: Session) -> int:
     return result
 
 
-def update_system(db: Session, id: int, update: SystemUpdate) -> SystemRead:
+def update_system(
+    db: Session, id: int, update: SystemUpdate, user: UserRead
+) -> SystemRead:
     try:
-        db_instance: System = get_system(db=db, id=id)
+        db_instance: System = get_system(db=db, id=id, user=user)
         if not db_instance:
             raise HTTPException(status_code=404, detail="Record not found")
         update_data = update.model_dump(exclude_unset=True)
@@ -72,11 +104,13 @@ def update_system(db: Session, id: int, update: SystemUpdate) -> SystemRead:
     return db_instance
 
 
-def find_system(db: Session, default: dict) -> SystemRead | None:
+def find_system(db: Session, default: dict, user: UserRead) -> SystemRead | None:
     try:
         statements = list()
         for key in list(default.keys()):
             statements.append(getattr(System, key) == default.get(key, None))
+        if not user.is_superuser:
+            statements.append(System.owner_id == user.id)
         result = db.query(System).where(*statements)
     except Exception as error:
         raise HTTPException(
@@ -85,11 +119,13 @@ def find_system(db: Session, default: dict) -> SystemRead | None:
     return result.first()
 
 
-def find_systems(db: Session, default: dict) -> list[SystemReadList]:
+def find_systems(db: Session, default: dict, user: UserRead) -> list[SystemReadList]:
     try:
         statements = list()
         for key in list(default.keys()):
             statements.append(getattr(System, key) == default.get(key, None))
+        if not user.is_superuser:
+            statements.append(System.owner_id == user.id)
         result = db.query(System).where(*statements)
     except Exception as error:
         raise HTTPException(
@@ -98,9 +134,9 @@ def find_systems(db: Session, default: dict) -> list[SystemReadList]:
     return result.all()
 
 
-def delete_system(db: Session, id: int) -> SuccessResult:
+def delete_system(db: Session, id: int, user: UserRead) -> SuccessResult:
     try:
-        db_instance = get_system(db=db, id=id)
+        db_instance = get_system(db=db, id=id, user=user)
         if not db_instance:
             raise HTTPException(status_code=404, detail="Record not found")
         db.delete(db_instance)
@@ -112,9 +148,9 @@ def delete_system(db: Session, id: int) -> SuccessResult:
     return SuccessResult(success=True)
 
 
-def get_system_messages(db: Session, id: int) -> list[Message]:
+def get_system_messages(db: Session, id: int, user: UserRead) -> list[Message]:
     try:
-        result = db.query(System).filter(System.id == id).first()
+        result = get_system(db=db, id=id, user=user)
         if not result:
             raise HTTPException(status_code=404, detail="Record not found")
         messages_list = result.chat.get("messages", [])
@@ -126,8 +162,10 @@ def get_system_messages(db: Session, id: int) -> list[Message]:
     return result
 
 
-def send_system_message(db: Session, id: int, text: str) -> SuccessResult:
-    result = db.query(System).filter(System.id == id).first()
+def send_system_message(
+    db: Session, id: int, text: str, user: UserRead
+) -> SuccessResult:
+    result = get_system(db=db, id=id, user=user)
     if not result:
         raise HTTPException(status_code=404, detail="Record not found")
     messages_list = result.chat.get("messages", [])
@@ -173,7 +211,10 @@ def send_system_message(db: Session, id: int, text: str) -> SuccessResult:
     return result
 
 
-def get_system_report(id: int) -> list[Message]:
+def get_system_report(db: Session, id: int, user: UserRead) -> list[Message]:
+    result = get_system(db=db, id=id, user=user)
+    if not result:
+        raise HTTPException(status_code=404, detail="Record not found")
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     file_path = os.path.join(base_dir, "media", str(id), "report.pdf")
     if os.path.exists(file_path):

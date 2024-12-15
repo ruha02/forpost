@@ -1,8 +1,9 @@
 from core.database import get_db
 from core.exception import NotFound
 from core.schema import Pagination, SuccessResult
+from depends import current_active_user, current_admin_user
 from fastapi import APIRouter, Depends
-from schemas import SourceCreate, SourceRead, SourceReadList, SourceUpdate
+from schemas import SourceCreate, SourceRead, SourceReadList, SourceUpdate, UserRead
 from services import (
     count_source,
     create_source,
@@ -20,6 +21,7 @@ router = APIRouter(prefix="/source", tags=["Source"])
 def route_create(
     create: SourceCreate,
     db: Session = Depends(get_db),
+    user: UserRead = Depends(current_admin_user),
 ) -> SourceRead:
     return create_source(db=db, create=create)
 
@@ -28,6 +30,7 @@ def route_create(
 def route_get_all(
     db: Session = Depends(get_db),
     pagination: Pagination = Depends(Pagination),
+    user: UserRead = Depends(current_active_user),
 ) -> list[SourceReadList]:
     return get_sources(db=db, offset=pagination.offset, limit=pagination.limit)
 
@@ -36,6 +39,7 @@ def route_get_all(
 def route_get_one(
     id: int,
     db: Session = Depends(get_db),
+    user: UserRead = Depends(current_active_user),
 ) -> SourceRead:
     result = get_source(db=db, id=id)
     if result is None:
@@ -46,6 +50,7 @@ def route_get_one(
 @router.get("/count/", response_model=int)
 def route_count(
     db: Session = Depends(get_db),
+    user: UserRead = Depends(current_active_user),
 ) -> int:
     return count_source(db=db)
 
@@ -55,6 +60,7 @@ def route_update(
     id: int,
     update: SourceUpdate,
     db: Session = Depends(get_db),
+    user: UserRead = Depends(current_admin_user),
 ) -> SourceRead:
     return update_source(db=db, id=id, update=update)
 
@@ -63,5 +69,6 @@ def route_update(
 def route_delete(
     id: int,
     db: Session = Depends(get_db),
+    user: UserRead = Depends(current_admin_user),
 ) -> SuccessResult:
     return delete_source(db=db, id=id)

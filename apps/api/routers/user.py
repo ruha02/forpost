@@ -1,18 +1,18 @@
 from core.database import get_db
 from core.exception import NotFound
 from core.schema import Pagination, SuccessResult
+from depends import current_active_user, current_admin_user
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
 from schemas import UserCreate, UserRead, UserReadList, UserUpdate
 from services import (
+    count_user,
+    create_user,
+    delete_user,
     get_user,
     get_users,
-    create_user,
-    count_user,
     update_user,
-    delete_user,
 )
-from depends import current_active_user
+from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/user", tags=["User"])
 
@@ -21,6 +21,7 @@ router = APIRouter(prefix="/user", tags=["User"])
 def route_create(
     create: UserCreate,
     db: Session = Depends(get_db),
+    user: UserRead = Depends(current_admin_user),
 ) -> UserRead:
     user = create_user(db=db, create=create)
     print(f"{'*'*20}{user}")
@@ -31,6 +32,7 @@ def route_create(
 def route_get_all(
     db: Session = Depends(get_db),
     pagination: Pagination = Depends(Pagination),
+    user: UserRead = Depends(current_admin_user),
 ) -> list[UserReadList]:
     return get_users(db=db, offset=pagination.offset, limit=pagination.limit)
 
@@ -39,6 +41,7 @@ def route_get_all(
 def route_get_one(
     id: int,
     db: Session = Depends(get_db),
+    user: UserRead = Depends(current_admin_user),
 ) -> UserRead:
     result = get_user(db=db, id=id)
     if result is None:
@@ -49,6 +52,7 @@ def route_get_one(
 @router.get("/count/", response_model=int)
 def route_count(
     db: Session = Depends(get_db),
+    user: UserRead = Depends(current_admin_user),
 ) -> int:
     return count_user(db=db)
 
@@ -58,6 +62,7 @@ def route_update(
     id: int,
     update: UserUpdate,
     db: Session = Depends(get_db),
+    user: UserRead = Depends(current_admin_user),
 ) -> UserRead:
     return update_user(db=db, id=id, update=update)
 
@@ -66,6 +71,7 @@ def route_update(
 def route_delete(
     id: int,
     db: Session = Depends(get_db),
+    user: UserRead = Depends(current_admin_user),
 ) -> SuccessResult:
     return delete_user(db=db, id=id)
 
