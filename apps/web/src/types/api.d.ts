@@ -74,6 +74,12 @@ declare namespace Api {
             owner: UserRead
         }
 
+        export interface SystemChatRead {
+            date: string;
+            role: string;
+            text: string
+        }
+
         export interface SystemReadList {
             id: number
             create_at: string;

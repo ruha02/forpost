@@ -1,11 +1,74 @@
 
 import { Button, Flex, Form, Input, Modal, Steps } from 'antd';
 import ButtonGroup from 'antd/es/button/button-group';
-import { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Input as ChatInput, MessageBox } from 'react-chat-elements';
 import 'react-chat-elements/dist/main.css';
 import { TableData } from '../../components/TableData';
-import { countSystems, createSystem, deleteSystem, getSystem, getSystems, updateSystem } from './../../api/system';
+import { countSystems, createSystem, deleteSystem, getSystem, getSystemChat, getSystems, sendSystemChatMessage, updateSystem } from './../../api/system';
+// Required CSS for react-chat-elements
+import 'react-chat-elements/dist/main.css';
+
+const Chat = ({ id }: { id: number }) => {
+    const [messages, setMessages] = useState<any[]>([])
+    const [message, setMessage] = useState('')
+    const getChat = async () => {
+        const result = await getSystemChat(id);
+        if ((result.data) && (!result.isError)) {
+            setMessages(result.data)
+        }
+    }
+
+    const sendMessage = async (text: string) => {
+        const result = await sendSystemChatMessage(id, text)
+        if ((result.data) && (!result.isError)) {
+            setMessages(result.data)
+        }
+    }
+
+    const offset = (new Date()).getTimezoneOffset();
+
+    useEffect(() => {
+        getChat()
+    }, [id])
+
+    return (
+        <Flex vertical style={{ width: '100%' }}>
+            <div style={{ height: '80%', border: '1px solid #ddd', overflowY: 'scroll', padding: '16px', marginBottom: '16px' }}>
+                {messages.map((message, index) => (
+                    <MessageBox
+                        position={message.role === 'system' ? 'left' : 'right'}
+                        type={'text'}
+                        title={message.role === 'system' ? 'ФОРПОСТ' : 'Вы'}
+                        text={message.text}
+                        date={new Date((new Date(message.date)).getTime() - offset * 60000)}
+                        id={index}
+                        focus={false}
+                        titleColor={'#4f81a1'}
+                        forwarded={false}
+                        replyButton={false}
+                        removeButton={false}
+                        status={'sent'}
+                        notch={true}
+                        retracted={false}
+                    />
+                ))}
+            </div>
+            <ChatInput
+                placeholder="Введите сообщение"
+                multiline={false}
+                maxHeight={100}
+                value={message}
+                onChange={(e: any) => setMessage(e.target.value)}
+                inputStyle={{ border: '1px solid #ddd' }}
+                rightButtons={<Button type="primary" onClick={(e) => {
+                    sendMessage(message)
+                }}>Отправить</Button >}
+                onSubmit={(e: any) => console.log(e.target.value)}
+            />
+        </Flex>
+    )
+}
 
 const System: React.FC = () => {
     const [current, setCurrent] = useState(0)
@@ -56,51 +119,14 @@ const System: React.FC = () => {
         "get_list": getSystems
     }
 
-    const handleSave = (values: any) => {
-        console.log(values)
-    }
-
     const get_modal = ({ isEdit, open, onOk, onCancel, data, form }: Table.ModalW) => {
-        let currentIdMessage = data && data.chat ? data.chat.length : 0
-        // setChat(data && data.chat ? data.chat : [])
-        const createForpostMessage = (dateMessage: Date, textMessage: string) => {
-            return <MessageBox
-                position={'left'}
-                type={'text'}
-                title={'ФОРПОСТ'}
-                text={textMessage}
-                date={dateMessage}
-                id={currentIdMessage}
-                focus={false}
-                titleColor={'#4f81a1'}
-                forwarded={false}
-                replyButton={false}
-                removeButton={false}
-                status={'sent'}
-                notch={true}
-                retracted={false}
-            />
-        }
-        const createUserMessage = (dateMessage: Date, textMessage: string) => {
-            return <MessageBox
-                position={'right'}
-                type={'text'}
-                title={'Вы'}
-                text={textMessage}
-                date={dateMessage}
-                id={currentIdMessage}
-                focus={false}
-                titleColor={'#4f81a1'}
-                forwarded={false}
-                replyButton={false}
-                removeButton={false}
-                status={'sent'}
-                notch={true}
-                retracted={false}
-            />
-        }
         const steps = [
-            <>
+            <Form
+                form={form}
+                initialValues={undefined}
+                labelCol={{ span: 6 }}
+                wrapperCol={{ span: 16 }}
+                style={{ width: '100%', height: '600px' }}>
                 <Form.Item label='Наименование' name="name" key="name">
                     <Input />
                 </Form.Item>
@@ -110,24 +136,8 @@ const System: React.FC = () => {
                 <Form.Item label='Ссылка на репозиторий' name="repo" key="repo">
                     <Input />
                 </Form.Item>
-            </ >,
-            <>
-                <div style={{ height: '80%', border: '1px solid #ddd', overflowY: 'scroll', padding: '10px', marginBottom: "10px" }}>
-                    {createForpostMessage(new Date(), 'Привет. Я помощник для иследования твоей системы на вопросы информационной безопасности. Сейчас я изучаю твою систему и вскоре задам пару вопросов. Поджожди немного...')}
-                </div>
-                <ChatInput
-                    placeholder="Введите сообщение"
-                    multiline={false}
-                    maxHeight={100}
-                    rightButtons={<Button type="primary" onClick={() => {
-                        console.log(form.getFieldsValue())
-                        console.log(data)
-                    }}>Отправить</Button >}
-                    inputStyle={{ border: '1px solid #ddd' }
-                    }
-                    onSubmit={(e: any) => console.log(e.target.value)}
-                />
-            </>,
+            </Form >,
+            <Chat id={data && data.id ? data.id : 0} />,
             <Flex align='center' justify='center' style={{ height: '100%' }}>
                 <div>
                     Очет формируется
@@ -164,14 +174,9 @@ const System: React.FC = () => {
                     description: 'Получение отчета',
                 }
             ]} />
-            <Form
-                form={form}
-                initialValues={undefined}
-                labelCol={{ span: 6 }}
-                wrapperCol={{ span: 16 }}
-                style={{ width: '100%', height: '600px' }}>
+            <Flex justify='center' style={{ height: '600px', width: '100%' }}>
                 {steps[current]}
-            </Form>
+            </Flex>
             <Flex justify='space-between'>
                 <ButtonGroup>
                     {current > 0 && <Button onClick={() => setCurrent(current - 1)}>

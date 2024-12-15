@@ -9,11 +9,28 @@ export async function getSystem(id: number) {
     return await fetchHandler<Api.Response.SystemRead>('system/' + id);
 }
 
+export async function getSystemChat(id: number) {
+    return await fetchHandler<Api.Response.SystemChatRead[]>('system/' + id + "/messages/");
+}
+
 export async function updateSystem(id: number, data: any) {
 
     return await fetchHandler<Api.Response.SystemRead>('system/' + id, {
         method: 'PATCH',
         body: JSON.stringify(data),
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+}
+
+
+export async function sendSystemChatMessage(id: number, text: string) {
+    const params = {
+        text: text
+    }
+    return await fetchHandler<Api.Response.SystemChatRead[]>('system/' + id + "/send_message/" + createQueryParamsString(params), {
+        method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
