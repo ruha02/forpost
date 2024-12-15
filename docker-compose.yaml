@@ -52,18 +52,18 @@ services:
     restart: unless-stopped
     volumes:
       - ./apps/pgsql/data:/data
-  # web:
-  #   build:
-  #     context: ./apps/web
-  #     dockerfile: Dockerfile
-  #   container_name: ${PROJECT_NAME}_web
-  #   environment:
-  #   - REACT_APP_API_ADDRESS=${API_BASE_URL_FRONT}
-  #   image: api
-  #   labels:
-  #     org.label-schema.group: ${PROJECT_NAME}
-  #   ports:
-  #   - 3000:3000
-  #   volumes:
-  #   - ./apps/api/media:/files
-  #   - ./apps/web:/app
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: ${PROJECT_NAME}_web
+    environment:
+      - REACT_APP_API_ADDRESS=${API_BASE_URL_FRONT}
+    image: api
+    labels:
+      org.label-schema.group: ${PROJECT_NAME}
+    ports:
+      - 80:80
+    volumes:
+      - ./apps/api/media:/files
+      - ./apps/web:/app
