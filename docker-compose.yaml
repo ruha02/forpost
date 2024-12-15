@@ -44,7 +44,7 @@ services:
         - CMD-SHELL
         - pg_isready -U ${PGSQL_USERNAME} -d ${PGSQL_DATABASE}
       timeout: 30s
-    image: postgres
+    image: postgres:16
     labels:
       org.label-schema.group: ${PROJECT_NAME}
     ports:
@@ -59,7 +59,7 @@ services:
     container_name: ${PROJECT_NAME}_web
     environment:
       - REACT_APP_API_ADDRESS=${API_BASE_URL_FRONT}
-    image: api
+    image: web
     labels:
       org.label-schema.group: ${PROJECT_NAME}
     ports:

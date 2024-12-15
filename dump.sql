@@ -177,7 +177,6 @@ CREATE TABLE public.system (
     name character varying,
     description character varying,
     repo character varying,
-    report character varying,
     owner_id integer
 );
 
@@ -772,8 +771,8 @@ COPY public.source (id, name, url) FROM stdin;
 -- Data for Name: system; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.system (id, create_at, name, description, repo, report, owner_id) FROM stdin;
-1	2024-12-12 00:00:00	Форпост	Помощник для ИБ-инженеров, программистов и менеджеров в сфере ИБ	https://github.com/ruha02/forpost	\N	13
+COPY public.system (id, create_at, name, description, repo, owner_id) FROM stdin;
+1	2024-12-12 00:00:00	Форпост	Помощник для ИБ-инженеров, программистов и менеджеров в сфере ИБ	https://github.com/ruha02/forpost	13
 \.
 
 

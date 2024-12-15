@@ -1,9 +1,7 @@
-import json
 import os
 from datetime import datetime
 
 from core.schema import SuccessResult
-from core.settings import get_settings
 from fastapi import HTTPException, status
 from models import System
 from requests import Session as HTTPSession
