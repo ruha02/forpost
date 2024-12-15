@@ -1,5 +1,5 @@
 <p align="center">
-  <img src='https://github.com/ruha02/forpost/blob/main/apps/web/src/assets/readme_logo.png?raw=true' height="auto" width="100px" style="border-radius:50%">
+  <img src='https://github.com/ruha02/forpost/blob/main/apps/web/src/assets/readme_logo.png?raw=true' height="auto" width="200px" style="border-radius:50%">
 </p>
 
 
@@ -45,3 +45,4 @@ migrate.cmd
 chmod +x migrate.sh
 ./migrate.sh
 ```
+Сервис будет доступен по адресу http://localhost, api севриса - http://localhost:9000
