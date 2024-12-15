@@ -1,5 +1,5 @@
 <p align="center">
-  <img src='https://github.com/ruha02/forpost/blob/main/apps/web/src/assets/readme_logo.png?raw=true' height="auto" width="100%" style="border-radius:50%">
+  <img src='https://github.com/ruha02/forpost/blob/main/apps/web/src/assets/readme_logo.png?raw=true' height="auto" width="100px" style="border-radius:50%">
 </p>
 
 
