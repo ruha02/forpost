@@ -45,3 +45,4 @@ migrate.cmd
 chmod +x migrate.sh
 ./migrate.sh
 ```
+Сервис будет доступен по адресу http://localhost, api севриса - http://localhost:9000
