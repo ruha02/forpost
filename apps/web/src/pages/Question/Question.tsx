@@ -1,19 +1,24 @@
 
-import { Form, Input, Modal } from 'antd';
+import { Button, Card, Divider, Flex, Form, Input, Modal, Radio, Select } from 'antd';
+import { useEffect, useState } from 'react';
+import { getSources } from '../../api/source';
 import { TableData } from '../../components/TableData';
 import { countQuestions, createQuestion, deleteQuestion, getQuestion, getQuestions, updateQuestion } from './../../api/question';
-
 const Question: React.FC = () => {
-    const getColorByGrade = (grade: number): string => {
-        const colors = {
-            1: '#0000ff',
-            2: '#00ff00',
-            3: '#ffff00',
-            4: '#ff7f00',
-            5: '#ff0000'
+    const [sources, setSources] = useState<Api.Response.SourceReadList[]>([])
+
+    const getSourcesFilter = async () => {
+        const { data, isError } = await getSources({ offset: 0 });
+        if (isError) {
+            return;
         }
-        return colors[grade as keyof typeof colors] || '#ff0000'
+        setSources(data);
     }
+
+    useEffect(() => {
+        getSourcesFilter()
+    }, [])
+
     const FieldList: Table.FieldList[] = [
         {
             title: 'ID',
@@ -25,20 +30,23 @@ const Question: React.FC = () => {
             title: 'Вопрос',
             dataIndex: 'question',
             key: 'question',
-            render: (value: string) => value
+            render: (value: string) => value,
         },
         {
             title: 'Источник',
             dataIndex: 'source',
-            key: 'source',
+            key: 'source_id',
             render: (value: Api.Response.SourceRead) => value ? <a href={value.url}>{value.name}</a> : '',
+            filters: sources && sources.map((source: Api.Response.SourceReadList) => ({ text: source.name, value: source.id })),
+            onFilter: (value: number, record: Api.Response.QuestionRead) => {
+                return record.source?.id === value
+            },
+            filterSearch: true,
+            filterMultiple: false,
+            onChange: (value: number) => {
+                console.log(value);
+            }
         },
-        {
-            title: 'Ответы',
-            dataIndex: 'answers',
-            key: 'answers',
-            render: (value: Api.Response.AnswerReadList[]) => value ? value.map((answer: any) => <div style={{ color: getColorByGrade(answer.sec_value) }}> {answer.answer}</div >) : '',
-        }
     ]
 
 
@@ -52,15 +60,13 @@ const Question: React.FC = () => {
     }
 
     const get_modal = ({ isEdit, open, onOk, onCancel, data, form }: Table.ModalW) => {
-        console.log(data);
         return <Modal
             title={isEdit ? "Редактирование" : "Добавление"}
             open={open}
             onOk={(values) => {
                 form.validateFields().then((values: any) => {
-                    onOk(JSON.stringify(values))
+                    onOk(values)
                 }).catch((error: any) => {
-                    console.log(error);
                 })
             }}
             onCancel={() => onCancel()}
@@ -70,14 +76,88 @@ const Question: React.FC = () => {
         >
             <Form
                 form={form}
-                initialValues={isEdit ? { ...data } : undefined}
+                initialValues={undefined}
                 labelCol={{ span: 6 }}
                 wrapperCol={{ span: 16 }}>
                 <Form.Item label='Вопрос' name="question" key="question">
                     <Input />
                 </Form.Item>
-            </Form>
-        </Modal>
+                <Form.Item label='Источник' name={["source", "id"]} key="source_id">
+                    <Select
+                        showSearch
+                        filterOption={(input, option) =>
+                            (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                        }
+                        options={sources.map((source: Api.Response.SourceReadList) => ({ label: source.name, value: source.id }))}
+                    />
+                </Form.Item>
+                <Divider>Ответы</Divider>
+
+                <Form.List name="answers" >
+                    {(fields, { add, remove }) => (
+                        <>
+                            {fields.map(({ key, name, ...restField }) => (
+                                <Card
+                                    title={`Ответ ${key + 1}`}
+                                    size='small'
+                                    extra={
+                                        <Button
+                                            type="primary"
+                                            size='small'
+                                            danger
+                                            onClick={() => remove(name)}
+                                        >
+                                            Удалить
+                                        </Button>}
+                                    style={{ width: "100%", marginBottom: '24px' }}>
+                                    <Form.Item key={key}>
+                                        <Flex vertical >
+                                            <Form.Item label='Значение' {...restField} name={[name, 'answer']} style={{ width: "100%" }}>
+                                                <Input />
+                                            </Form.Item>
+                                            <Form.Item label='Уровень опасности' {...restField} name={[name, 'sec_value']} key={`sec_value_${key}`}>
+                                                <Radio.Group
+                                                    block
+                                                    options={[
+                                                        { label: 'Не несёт', value: 1, style: { width: "120px" } },
+                                                        { label: 'Низкий', value: 2, style: { width: "120px" } },
+                                                        { label: 'Средний', value: 3, style: { width: "120px" } },
+                                                        { label: 'Высокий', value: 4, style: { width: "120px" } },
+                                                        { label: 'Критичный', value: 5, style: { width: "120px" } },
+                                                    ]}
+                                                    defaultValue={3}
+                                                    optionType="button"
+                                                    buttonStyle="solid"
+                                                />
+                                            </Form.Item>
+                                        </Flex>
+                                    </Form.Item>
+                                </Card>
+                            ))}
+                            <Form.Item>
+                                <Button type="primary" onClick={() => add()}>Добавить ответ</Button>
+                            </Form.Item>
+                        </>
+                    )}
+                </Form.List>
+
+
+
+
+
+                {/* <Form.List name="answers">
+                    {(fields, { add, remove }) => (
+                        <>
+                            {fields.map(({ key, name, ...restField }) => (
+                               
+                                    
+                                </Card>
+                            ))}
+                            <Button type="primary" onClick={() => add() > Добавить ответ</Button>
+                    )}
+                </Form.List> */}
+            </Form >
+        </Modal >
     }
 
     return <TableData

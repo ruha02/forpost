@@ -17,6 +17,11 @@ declare global {
             dataIndex: string;
             key: string;
             render?: (value: any) => JSX.Element | string | any;
+            filters?: any,
+            onFilter?: (value: any, record: any) => boolean;
+            onChange?: (value: any) => void;
+            filterSearch?: boolean;
+            filterMultiple?: boolean;
         }
 
 
@@ -25,7 +30,7 @@ declare global {
             delete: (id: number) => Promise<Response<Success>>;
             update: (id: number, data: any) => any;
             get: (id: number) => any;
-            count: () => Promise<Response<number>>;
+            count: (params: any) => Promise<Response<number>>;
             get_list: (params: Api.Params) => Promise<Response<any[]>>;
         }
 

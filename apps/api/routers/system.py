@@ -2,19 +2,22 @@ from core.database import get_db
 from core.exception import NotFound
 from core.schema import Pagination, SuccessResult
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-from schemas import SystemCreate, SystemRead, SystemReadList, SystemUpdate
+from schemas import Message, SystemCreate, SystemRead, SystemReadList, SystemUpdate
 from services import (
-    get_system,
-    get_systems,
-    create_system,
     count_system,
+    create_system,
+    delete_system,
+    get_system,
+    get_system_messages,
+    get_system_report,
+    get_systems,
+    send_system_message,
     update_system,
-    delete_system
 )
-
+from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/system", tags=["System"])
+
 
 @router.post("/", response_model=SystemRead)
 def route_create(
@@ -47,7 +50,7 @@ def route_get_one(
 def route_count(
     db: Session = Depends(get_db),
 ) -> int:
-    return  count_system(db=db)
+    return count_system(db=db)
 
 
 @router.patch("/{id}", response_model=SystemRead)
@@ -65,3 +68,28 @@ def route_delete(
     db: Session = Depends(get_db),
 ) -> SuccessResult:
     return delete_system(db=db, id=id)
+
+
+@router.get("/{id}/messages/", response_model=list[Message])
+def route_get_messages(
+    id: int,
+    db: Session = Depends(get_db),
+) -> list[Message]:
+    return get_system_messages(db=db, id=id)
+
+
+@router.post("/{id}/send_message/", response_model=list[Message])
+def route_send_message(
+    id: int,
+    text: str,
+    db: Session = Depends(get_db),
+) -> list[Message]:
+    print(id, text)
+    return send_system_message(db=db, id=id, text=text)
+
+
+@router.get("/{id}/report/", response_model=str | None)
+def route_get_report(
+    id: int,
+) -> str | None:
+    return get_system_report(id=id)

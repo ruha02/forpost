@@ -36,15 +36,13 @@ const Source: React.FC = () => {
     }
 
     const get_modal = ({ isEdit, open, onOk, onCancel, data, form }: Table.ModalW) => {
-        console.log(data);
         return <Modal
             title={isEdit ? "Редактирование" : "Добавление"}
             open={open}
             onOk={(values) => {
                 form.validateFields().then((values: any) => {
-                    onOk(JSON.stringify(values))
+                    onOk(values)
                 }).catch((error: any) => {
-                    console.log(error);
                 })
             }}
             onCancel={() => onCancel()}
@@ -54,11 +52,14 @@ const Source: React.FC = () => {
         >
             <Form
                 form={form}
-                initialValues={isEdit ? { ...data } : undefined}
+                initialValues={undefined}
                 labelCol={{ span: 6 }}
                 wrapperCol={{ span: 16 }}>
-                <Form.Item label='Вопрос' name="Source" key="Source">
+                <Form.Item label='Наименование' name="name" key="name">
                     <Input />
+                </Form.Item>
+                <Form.Item label='Ссылка' name="url" key="url">
+                    <Input addonBefore="https://" />
                 </Form.Item>
             </Form>
         </Modal>

@@ -71,6 +71,7 @@ declare namespace Api {
             description?: string
             repo?: string
             report: string
+            chat?: object
             owner: UserRead
         }
 

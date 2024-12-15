@@ -1,7 +1,7 @@
-import { Button, Form, message, Table, Typography } from "antd";
+import { EditOutlined } from "@ant-design/icons";
+import { Button, Flex, Form, message, Popconfirm, Table, Typography } from "antd";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 
 
 
@@ -25,10 +25,13 @@ const TableData = (props: Table.Props) => {
         data: [],
         form: form,
     });
+    const [params, setParams] = useState({
+        offset: 0,
+        limit: 10,
+    })
 
     // get data
     const getList = async (params: Api.Params.Pagination) => {
-
         setLoading(true);
         const result = await props.action.get_list(params);
         if (result.isError) {
@@ -55,16 +58,15 @@ const TableData = (props: Table.Props) => {
 
     // handlers
     const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
-        console.log('selectedRowKeys changed: ', newSelectedRowKeys);
         setSelectedRowKeys(newSelectedRowKeys);
     };
-    const onChange = (pagination: any, filters: any, sorter: any, extra: any) => {
-        console.log('params', pagination, filters, sorter, extra);
-    };
+
     const handelAdd = () => {
+        form.resetFields();
         setModalProps({
             isEdit: false,
             open: true,
+            data: null,
             onOk: (values: any) => {
                 console.log(values);
 
@@ -79,11 +81,40 @@ const TableData = (props: Table.Props) => {
                 })
             },
             onCancel: () => {
-                console.log('handle cancel');
                 setModalProps((prev: any) => ({ ...prev, open: false }))
 
             },
             form: form
+        })
+    }
+
+    const handelEdit = (id: number) => {
+        getData(id).then((data) => {
+            console.log(data);
+
+            form.setFieldsValue(data)
+            setModalProps({
+                isEdit: true,
+                open: true,
+                data: data,
+                onOk: (values: any) => {
+                    console.log(values);
+                    props.action.update(id, values).then((res: any) => {
+                        if (res.isError) {
+                            message.error('Ошибка создания')
+                            return
+                        }
+                        message.success('Успешно создано')
+                        setModalProps((prev: any) => ({ ...prev, open: false }))
+                        setTotal((prev) => prev + 1)
+                    })
+                },
+                onCancel: () => {
+                    setModalProps((prev: any) => ({ ...prev, open: false }))
+
+                },
+                form: form
+            })
         })
     }
 
@@ -107,23 +138,34 @@ const TableData = (props: Table.Props) => {
 
     // effects
     useEffect(() => {
-        const params = {
-            offset: (page - 1) * pageSize,
-            limit: pageSize
-        };
         getList(params).then((data) => data && setList(data));
-    }, [page, pageSize, total]);
+    }, [params, total]);
 
     useEffect(() => {
-        props.action.count().then((result) => {
+        props.action.count(params).then((result) => {
             if (result.isError) {
                 return;
             }
             setTotal(result.data);
         });
-    }, [list]);
 
+    }, [list, params]);
 
+    const onChange = (pagination: any, filters: any, extras: any) => {
+        let params = {
+            offset: (pagination['current'] - 1) * pagination['pageSize'],
+            limit: pageSize,
+        };
+        for (const key in filters) {
+            if (filters[key]) {
+                params = {
+                    ...params,
+                    [key]: filters[key][0]
+                }
+            }
+        }
+        setParams(params);
+    };
 
     return <>{contextHolder}<div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%' }}>
         <Typography.Title level={3} style={{ alignSelf: 'center' }}>{props.title}</Typography.Title>
@@ -131,7 +173,9 @@ const TableData = (props: Table.Props) => {
             <div>{hasSelected ? `Выбрано: ${selectedRowKeys.length}` : ''}</div>
             <div style={{ display: "flex", gap: "8px" }}>
                 <Button type="primary" onClick={handelAdd}>Добавить</Button>
-                <Button type="primary" danger={true} onClick={() => handelDelete(selectedRowKeys)} disabled={!hasSelected}>Удалить</Button>
+                <Popconfirm title={`Вы уверены что хотите удалить: ${selectedRowKeys.length} шт.?`} onConfirm={() => handelDelete(selectedRowKeys)} okText="Да" cancelText="Нет">
+                    <Button type="primary" danger={true} disabled={!hasSelected}>Удалить</Button>
+                </Popconfirm>
                 {props.buttons?.map((button, key) => (
                     <Button key={key} type={button.type} danger={button.danger} onClick={() => {
                         return button.onClick ? button.onClick() : button.onClickWithSelectedRow ? button.onClickWithSelectedRow(selectedRowKeys) : console.log(`Button ${button.title} have no action`);
@@ -142,9 +186,20 @@ const TableData = (props: Table.Props) => {
 
         <Table
             loading={loading}
-            style={{ cursor: 'pointer' }}
             dataSource={list}
-            columns={props.fieldList}
+            onChange={onChange}
+            columns={[...props.fieldList,
+            {
+                title: 'Действия',
+                dataIndex: 'id',
+                key: 'actions',
+                render: (value: number) => <Flex justify="center">
+                    <EditOutlined
+                        style={{ fontSize: "1.1rem" }}
+                        onClick={() => { return handelEdit(value) }} />
+                </Flex>
+            }
+            ]}
             pagination={{
                 defaultCurrent: 1,
                 total: total,
@@ -153,36 +208,8 @@ const TableData = (props: Table.Props) => {
                 current: page,
             }}
             rowKey='id'
-            onChange={onChange}
             rowSelection={rowSelection}
-            onRow={(record, rowIndex) => {
-                return {
-                    onClick: async event => {
-                        await getData(record['id'])
-                        // setModalProps({
-                        //     isEdit: true,
-                        //     open: true,
-                        //     onOk: (values: any) => {
-                        //         props.action.add(values).then((res: any) => {
-                        //             if (res.isError) {
-                        //                 message.error('Ошибка создания')
-                        //                 return
-                        //             }
-                        //             message.success('Успешно создано')
-                        //             setModalProps((prev: any) => ({ ...prev, open: false }))
-                        //             setTotal((prev) => prev + 1)
-                        //         })
-                        //     },
-                        //     onCancel: () => {
-                        //         setModalProps((prev: any) => ({ ...prev, open: false }))
-
-                        //     },
-                        //     form: form,
-                        //     data: data
-                        // })
-                    }
-                };
-            }} />
+        />
         {props.modal(modalProps)}
     </div>
     </>

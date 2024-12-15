@@ -2,19 +2,19 @@ from core.database import get_db
 from core.exception import NotFound
 from core.schema import Pagination, SuccessResult
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
 from schemas import AnswerCreate, AnswerRead, AnswerReadList, AnswerUpdate
 from services import (
+    count_answer,
+    create_answer,
+    delete_answer,
     get_answer,
     get_answers,
-    create_answer,
-    count_answer,
     update_answer,
-    delete_answer
 )
-
+from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/answer", tags=["Answer"])
+
 
 @router.post("/", response_model=AnswerRead)
 def route_create(
@@ -47,7 +47,7 @@ def route_get_one(
 def route_count(
     db: Session = Depends(get_db),
 ) -> int:
-    return  count_answer(db=db)
+    return count_answer(db=db)
 
 
 @router.patch("/{id}", response_model=AnswerRead)

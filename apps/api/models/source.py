@@ -1,6 +1,5 @@
 from core.database import Base
-from sqlalchemy import Column, Integer
-from sqlalchemy import String
+from sqlalchemy import Column, Integer, String
 
 
 class Source(Base):
@@ -10,4 +9,3 @@ class Source(Base):
 
     name = Column(String)
     url = Column(String)
-    

@@ -2,19 +2,21 @@ from core.database import get_db
 from core.exception import NotFound
 from core.schema import Pagination, SuccessResult
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from fastapi_filter import FilterDepends
+from filters import QuestionFilter
 from schemas import QuestionCreate, QuestionRead, QuestionReadList, QuestionUpdate
 from services import (
+    count_question,
+    create_question,
+    delete_question,
     get_question,
     get_questions,
-    create_question,
-    count_question,
     update_question,
-    delete_question
 )
-
+from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/question", tags=["Question"])
+
 
 @router.post("/", response_model=QuestionRead)
 def route_create(
@@ -28,8 +30,11 @@ def route_create(
 def route_get_all(
     db: Session = Depends(get_db),
     pagination: Pagination = Depends(Pagination),
+    filter: QuestionFilter = FilterDepends(QuestionFilter),
 ) -> list[QuestionReadList]:
-    return get_questions(db=db, offset=pagination.offset, limit=pagination.limit)
+    return get_questions(
+        db=db, offset=pagination.offset, limit=pagination.limit, filter=filter
+    )
 
 
 @router.get("/{id}", response_model=QuestionRead)
@@ -46,8 +51,9 @@ def route_get_one(
 @router.get("/count/", response_model=int)
 def route_count(
     db: Session = Depends(get_db),
+    filter: QuestionFilter = FilterDepends(QuestionFilter),
 ) -> int:
-    return  count_question(db=db)
+    return count_question(db=db, filter=filter)
 
 
 @router.patch("/{id}", response_model=QuestionRead)

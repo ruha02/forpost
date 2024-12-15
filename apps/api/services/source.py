@@ -1,8 +1,8 @@
 from core.schema import SuccessResult
 from fastapi import HTTPException, status
-from sqlalchemy.orm import Session
 from models import Source
 from schemas import SourceCreate, SourceRead, SourceReadList, SourceUpdate
+from sqlalchemy.orm import Session
 
 
 def get_source(db: Session, id: int) -> SourceRead:
@@ -19,7 +19,7 @@ def get_sources(
     db: Session, offset: int = 0, limit: int | None = None
 ) -> list[SourceReadList]:
     try:
-        result = db.query(Source).offset(offset).limit(limit).all()
+        result = db.query(Source).order_by(Source.id).offset(offset).limit(limit).all()
     except Exception as err:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(err)

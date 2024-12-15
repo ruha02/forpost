@@ -1,8 +1,14 @@
+import json
+import os
+from datetime import datetime
+
 from core.schema import SuccessResult
+from core.settings import get_settings
 from fastapi import HTTPException, status
-from sqlalchemy.orm import Session
 from models import System
-from schemas import SystemCreate, SystemRead, SystemReadList, SystemUpdate
+from requests import Session as HTTPSession
+from schemas import Message, SystemCreate, SystemRead, SystemReadList, SystemUpdate
+from sqlalchemy.orm import Session
 
 
 def get_system(db: Session, id: int) -> SystemRead:
@@ -106,3 +112,72 @@ def delete_system(db: Session, id: int) -> SuccessResult:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(error)
         )
     return SuccessResult(success=True)
+
+
+def get_system_messages(db: Session, id: int) -> list[Message]:
+    try:
+        result = db.query(System).filter(System.id == id).first()
+        if not result:
+            raise HTTPException(status_code=404, detail="Record not found")
+        messages_list = result.chat.get("messages", [])
+        result = [Message(**message) for message in messages_list]
+    except Exception as err:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(err)
+        )
+    return result
+
+
+def send_system_message(db: Session, id: int, text: str) -> SuccessResult:
+    result = db.query(System).filter(System.id == id).first()
+    if not result:
+        raise HTTPException(status_code=404, detail="Record not found")
+    messages_list = result.chat.get("messages", [])
+    messages_list.append(
+        {
+            "role": "user",
+            "text": text,
+            "date": datetime.now().isoformat(),
+        }
+    )
+    # Кирилл тут надо будет заменить на запрос к сервису
+    try:
+        s = HTTPSession()
+        r = s.post(
+            "http://127.0.0.1:8000/api/v1/chat/send_message/",
+            json={"id": id, "message": text},
+        )
+        response = r.json()
+        messages_list.append(
+            {
+                "role": "system",
+                "text": response["text"],
+                "date": datetime.now().isoformat(),
+            }
+        )
+    except Exception as err:
+        print(f"Error: {err=}")
+        messages_list.append(
+            {
+                "role": "system",
+                "text": "Я устал... и не буду работать...",
+                "date": datetime.now().isoformat(),
+            }
+        )
+    print("Before update:", result.chat)
+    result.chat = {"messages": messages_list}
+    print("After update:", result.chat)
+    db.add(result)
+    db.commit()
+    db.flush()
+    db.refresh(result)
+    result = [Message(**m) for m in messages_list]
+    return result
+
+
+def get_system_report(id: int) -> list[Message]:
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    file_path = os.path.join(base_dir, "media", str(id), "report.pdf")
+    if os.path.exists(file_path):
+        return f"http://localhost/files/{id}/report.pdf"
+    return None

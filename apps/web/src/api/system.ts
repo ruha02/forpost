@@ -21,7 +21,6 @@ export async function updateSystem(id: number, data: any) {
 }
 
 export async function createSystem(data: any) {
-    console.log('Create', data);
     return await fetchHandler<Api.Response.SystemRead>('system/', {
         method: 'POST',
         body: JSON.stringify(data),

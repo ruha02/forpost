@@ -1,4 +1,5 @@
 from typing import Optional
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -23,5 +24,6 @@ class AnswerReadList(AnswerBase):
 
 
 class AnswerUpdate(BaseModel):
+    id: Optional[int] = None
     answer: Optional[str] = None
     sec_value: Optional[int] = None

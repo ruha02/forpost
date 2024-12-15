@@ -1,16 +1,16 @@
-import { fetchHandler, createQueryParamsString } from ".";
+import { createQueryParamsString, fetchHandler } from ".";
+import { CheckUrl } from "./utils";
 
-
-export async function getSources (params: Api.Params) {
+export async function getSources(params: Api.Params) {
     return await fetchHandler<Api.Response.SourceReadList[]>('source/' + createQueryParamsString(params));
 }
 
-export async function getSource (id: number) {
+export async function getSource(id: number) {
     return await fetchHandler<Api.Response.SourceRead>('source/' + id);
 }
 
 export async function updateSource(id: number, data: any) {
-
+    data.url = CheckUrl(data.url)
     return await fetchHandler<Api.Response.SourceRead>('source/' + id, {
         method: 'PATCH',
         body: JSON.stringify(data),
@@ -21,6 +21,7 @@ export async function updateSource(id: number, data: any) {
 }
 
 export async function createSource(data: any) {
+    data.url = CheckUrl(data.url)
     return await fetchHandler<Api.Response.SourceRead>('source/', {
         method: 'POST',
         body: JSON.stringify(data),

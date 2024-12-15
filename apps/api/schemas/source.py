@@ -1,15 +1,16 @@
 from typing import Optional
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
 class SourceBase(BaseModel):
     name: str = Field(description="Название")
     url: str = Field(description="Ссылка")
-    
+
 
 class SourceCreate(BaseModel):
     name: str = Field(description="Название")
-url: str = Field(description="Ссылка")
+    url: str = Field(description="Ссылка")
 
 
 class SourceRead(SourceBase):
@@ -25,4 +26,3 @@ class SourceReadList(SourceBase):
 class SourceUpdate(BaseModel):
     name: Optional[str] = None
     url: Optional[str] = None
-    

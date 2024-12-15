@@ -1,11 +1,11 @@
-import { fetchHandler, createQueryParamsString } from ".";
+import { createQueryParamsString, fetchHandler } from ".";
 
 
-export async function getUsers (params: Api.Params) {
+export async function getUsers(params: Api.Params) {
     return await fetchHandler<Api.Response.UserReadList[]>('user/' + createQueryParamsString(params));
 }
 
-export async function getUser (id: number) {
+export async function getUser(id: number) {
     return await fetchHandler<Api.Response.UserRead>('user/' + id);
 }
 
@@ -21,6 +21,7 @@ export async function updateUser(id: number, data: any) {
 }
 
 export async function createUser(data: any) {
+    data['is_verified'] = true;
     return await fetchHandler<Api.Response.UserRead>('user/', {
         method: 'POST',
         body: JSON.stringify(data),

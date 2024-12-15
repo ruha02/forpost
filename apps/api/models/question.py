@@ -1,6 +1,5 @@
 from core.database import Base
-from sqlalchemy import Column, Integer
-from sqlalchemy import String, ForeignKey
+from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 
@@ -12,4 +11,4 @@ class Question(Base):
     question = Column(String)
     source_id = Column(Integer, ForeignKey("source.id"))
     source = relationship("Source", foreign_keys="[Question.source_id]")
-    answers = relationship("Answer", back_populates="question")
+    answers = relationship("Answer", back_populates="question", cascade="all, delete")

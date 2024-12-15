@@ -11,7 +11,6 @@ class SystemBase(BaseModel):
     name: str = Field(description="Название")
     description: Optional[str] = Field(description="Описание", nullable=True)
     repo: Optional[str] = Field(description="Репозиторий", nullable=True)
-    report: Optional[str] = Field(description="Отчет")
 
 
 class SystemCreate(BaseModel):
@@ -23,11 +22,13 @@ class SystemCreate(BaseModel):
 class SystemRead(SystemBase):
     id: int
     owner: Optional[UserRead] = Field(description="Пользователь")
+    chat: Optional[dict] = Field(description="Чат")
     model_config = ConfigDict(from_attributes=True)
 
 
-class SystemReadList(SystemRead):
+class SystemReadList(SystemBase):
     id: int
+    owner: Optional[UserRead] = Field(description="Пользователь")
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -36,5 +37,10 @@ class SystemUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     repo: Optional[str] = None
-    report: Optional[str] = None
     owner_id: Optional[int] = None
+
+
+class Message(BaseModel):
+    date: datetime
+    role: str
+    text: str
