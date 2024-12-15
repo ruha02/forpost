@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+sentence-transformers
+pandas
+numpy
+openai
+python-dotenv
+validators
+GitPython
+python-multipart
