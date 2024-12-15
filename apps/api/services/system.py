@@ -15,6 +15,8 @@ from schemas import (
 )
 from sqlalchemy.orm import Session
 
+from .question import get_questionи_by_text, get_random_question
+
 
 def get_system(db: Session, id: int, user: UserRead) -> SystemRead:
     try:
@@ -166,57 +168,88 @@ def send_system_message(
     db: Session, id: int, text: str, user: UserRead
 ) -> SuccessResult:
     result = get_system(db=db, id=id, user=user)
+
     if not result:
         raise HTTPException(status_code=404, detail="Record not found")
-    messages_list = result.chat.get("messages", [])
-    messages_list.append(
-        {
-            "role": "user",
-            "text": text,
-            "date": datetime.now().isoformat(),
-        }
-    )
-    # Кирилл тут надо будет заменить на запрос к сервису
-    try:
-        s = HTTPSession()
-        r = s.post(
-            "http://127.0.0.1:8000/api/v1/chat/send_message/",
-            json={"id": id, "message": text},
+    if result.chat is None:
+        messages_list = []
+    else:
+        messages_list = result.chat.get("messages", [])
+    if text != "begin":
+        messages_list.append(
+            {
+                "role": "user",
+                "text": text,
+                "date": datetime.now().isoformat(),
+            }
         )
-        response = r.json()
+    if len(messages_list) > 10:
         messages_list.append(
             {
                 "role": "system",
-                "text": response["text"],
+                "text": "Мы закончили опрос и готовы предоставить вам отчет",
                 "date": datetime.now().isoformat(),
             }
+        )
+    else:
+        question = get_random_question(db=db)
+        messages_list.append(
+            {
+                "role": "system",
+                "text": f"{question.question}. Возможные варианты ответа: {", ".join([answer.answer for answer in question.answers])}",
+                "date": datetime.now().isoformat(),
+            }
+        )
+    try:
+        db.query(System).filter(System.id == id).update(
+            {"chat": {"messages": messages_list}}
         )
     except Exception as err:
-        print(f"Error: {err=}")
-        messages_list.append(
-            {
-                "role": "system",
-                "text": "Я устал... и не буду работать...",
-                "date": datetime.now().isoformat(),
-            }
-        )
-    print("Before update:", result.chat)
-    result.chat = {"messages": messages_list}
-    print("After update:", result.chat)
-    db.add(result)
+        print(err)
+
     db.commit()
-    db.flush()
     db.refresh(result)
-    result = [Message(**m) for m in messages_list]
-    return result
+    return [Message(**m) for m in messages_list]
 
 
-def get_system_report(db: Session, id: int, user: UserRead) -> list[Message]:
+def get_system_report(db: Session, id: int, user: UserRead) -> str:
     result = get_system(db=db, id=id, user=user)
     if not result:
         raise HTTPException(status_code=404, detail="Record not found")
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    file_path = os.path.join(base_dir, "media", str(id), "report.pdf")
-    if os.path.exists(file_path):
-        return f"http://localhost/files/{id}/report.pdf"
-    return None
+    if result.report:
+        return result.report
+    report = "### Отчет по опросу\n"
+    sec_level = ["Не несет", "Низкий", "Средний", "Высокий", "Очень высокий"]
+    for index, message in enumerate(result.chat.get("messages", [])):
+        if message["role"] == "system":
+            if message["text"].startswith(
+                "Мы закончили опрос и готовы предоставить вам отчет"
+            ):
+                break
+            _question = message["text"].split(". Возможные варианты ответа")
+            if len(_question) > 1:
+                _question = _question[0]
+            question = get_questionи_by_text(db=db, text=_question)
+            if question is not None:
+                answer = result.chat.get("messages", [])[index + 1]
+                for answer_obj in question.answers:
+                    if answer_obj.answer == answer["text"]:
+                        report += f"Уровень опасности: {sec_level[answer_obj.sec_value-1]}\n\n {question.question}\n\n"
+    try:
+        s = HTTPSession()
+        r = s.post(
+            "https://endless-presently-basilisk.ngrok-free.app/api/v1/chat/send_message/",
+            json={"id": id, "message": result.repo},
+        )
+        response = r.json()
+        update_system(
+            db=db,
+            id=id,
+            user=user,
+            update=SystemUpdate(report=report + response["text"]),
+        )
+        return report + response["text"]
+    except Exception as err:
+        print(err)
+        return None
+    return report

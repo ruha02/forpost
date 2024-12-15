@@ -9,6 +9,10 @@ export async function getSystem(id: number) {
     return await fetchHandler<Api.Response.SystemRead>('system/' + id);
 }
 
+export async function getSystemReport(id: number) {
+    return await fetchHandler<string>('system/' + id + '/report/');
+}
+
 export async function getSystemChat(id: number) {
     return await fetchHandler<Api.Response.SystemChatRead[]>('system/' + id + "/messages/");
 }

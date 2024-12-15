@@ -11,6 +11,7 @@ class SystemBase(BaseModel):
     name: str = Field(description="Название")
     description: Optional[str] = Field(description="Описание", nullable=True)
     repo: Optional[str] = Field(description="Репозиторий", nullable=True)
+    report: Optional[str] = Field(description="Отчет", nullable=True)
 
 
 class SystemCreate(BaseModel):
@@ -38,6 +39,7 @@ class SystemUpdate(BaseModel):
     description: Optional[str] = None
     repo: Optional[str] = None
     owner_id: Optional[int] = None
+    report: Optional[str] = None
 
 
 class Message(BaseModel):

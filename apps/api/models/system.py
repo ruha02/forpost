@@ -17,5 +17,7 @@ class System(Base):
     chat = Column(JSON, nullable=True)
 
     repo = Column(String, nullable=True)
+    report = Column(String, nullable=True)
+
     owner_id = Column(Integer, ForeignKey("user.id"))
     owner = relationship("User", foreign_keys="[System.owner_id]")

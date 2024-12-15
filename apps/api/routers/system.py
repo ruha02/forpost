@@ -102,7 +102,6 @@ def route_send_message(
     db: Session = Depends(get_db),
     user: UserRead = Depends(current_active_user),
 ) -> list[Message]:
-    print(id, text)
     return send_system_message(db=db, id=id, text=text, user=user)
 
 

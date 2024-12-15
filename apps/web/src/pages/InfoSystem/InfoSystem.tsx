@@ -1,17 +1,19 @@
 
 import { Button, Flex, Form, Input, Modal, Steps } from 'antd';
 import ButtonGroup from 'antd/es/button/button-group';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Input as ChatInput, MessageBox } from 'react-chat-elements';
 import 'react-chat-elements/dist/main.css';
 import { TableData } from '../../components/TableData';
-import { countSystems, createSystem, deleteSystem, getSystem, getSystemChat, getSystems, sendSystemChatMessage, updateSystem } from './../../api/system';
+import { countSystems, createSystem, deleteSystem, getSystem, getSystemChat, getSystemReport, getSystems, sendSystemChatMessage, updateSystem } from './../../api/system';
 // Required CSS for react-chat-elements
 import 'react-chat-elements/dist/main.css';
+import Markdown from 'react-markdown';
 
 const Chat = ({ id }: { id: number }) => {
     const [messages, setMessages] = useState<any[]>([])
     const [message, setMessage] = useState('')
+    const elementRef = useRef<HTMLDivElement>(null);
     const getChat = async () => {
         const result = await getSystemChat(id);
         if ((result.data) && (!result.isError)) {
@@ -29,12 +31,15 @@ const Chat = ({ id }: { id: number }) => {
     const offset = (new Date()).getTimezoneOffset();
 
     useEffect(() => {
+        if (messages.length === 0) {
+            sendMessage("begin")
+        }
         getChat()
     }, [id])
 
     return (
         <Flex vertical style={{ width: '100%' }}>
-            <div style={{ height: '80%', border: '1px solid #ddd', overflowY: 'scroll', padding: '16px', marginBottom: '16px' }}>
+            <div style={{ height: '80%', border: '1px solid #ddd', overflowY: 'scroll', padding: '16px', marginBottom: '16px' }} ref={elementRef}>
                 {messages.map((message, index) => (
                     <MessageBox
                         position={message.role === 'system' ? 'left' : 'right'}
@@ -63,11 +68,44 @@ const Chat = ({ id }: { id: number }) => {
                 inputStyle={{ border: '1px solid #ddd' }}
                 rightButtons={<Button type="primary" onClick={(e) => {
                     sendMessage(message)
+                    if (elementRef.current) {
+                        elementRef.current?.scrollIntoView({ behavior: 'smooth' });
+                    }
                 }}>Отправить</Button >}
                 onSubmit={(e: any) => console.log(e.target.value)}
             />
         </Flex>
     )
+}
+
+
+const Report = ({ id }: { id: number }) => {
+    const [report, setReport] = useState<any>()
+    const [loading, setLoading] = useState(false)
+    const getReport = async () => {
+        setLoading(true)
+        const result = await getSystemReport(id)
+        if ((result.data) && (!result.isError)) {
+            setReport(result.data)
+        }
+        setLoading(false)
+    }
+
+    useEffect(() => {
+        getReport()
+    }, [id])
+
+    const handleUpdate = async () => {
+        await getReport()
+    }
+
+    return <Flex vertical style={{ height: '90%', border: '1px solid #ddd', overflowY: 'scroll', padding: '16px', marginBottom: '16px', width: "900px" }}>
+        {report ?
+            <Markdown >
+                {report}
+            </Markdown>
+            : <Button onClick={handleUpdate} loading={loading}>Запросить отчет</Button>}
+    </Flex>
 }
 
 const System: React.FC = () => {
@@ -139,9 +177,7 @@ const System: React.FC = () => {
             </Form >,
             <Chat id={data && data.id ? data.id : 0} />,
             <Flex align='center' justify='center' style={{ height: '100%' }}>
-                <div>
-                    Очет формируется
-                </div>
+                <Report id={data && data.id ? data.id : 0} />
             </Flex>
         ]
 

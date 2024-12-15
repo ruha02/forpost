@@ -1,3 +1,5 @@
+from random import randint
+
 from core.schema import SuccessResult
 from fastapi import HTTPException, status
 from filters import QuestionFilter
@@ -17,6 +19,16 @@ def get_question(db: Session, id: int) -> QuestionRead:
     return result
 
 
+def get_questionи_by_text(db: Session, text: str) -> QuestionRead:
+    try:
+        result = db.query(Question).filter(Question.question == text).first()
+    except Exception as err:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(err)
+        )
+    return result
+
+
 def get_questions(
     db: Session,
     offset: int = 0,
@@ -24,6 +36,8 @@ def get_questions(
     filter: QuestionFilter = None,
 ) -> list[QuestionReadList]:
     try:
+        if filter is None:
+            filter = QuestionFilter()
         query = filter.filter(db.query(Question).order_by(Question.id))
         result = db.execute(query).scalars().all()
     except Exception as err:
@@ -56,8 +70,10 @@ def create_question(db: Session, create: QuestionCreate) -> QuestionRead:
     return db_instance
 
 
-def count_question(db: Session, filter: QuestionFilter) -> int:
+def count_question(db: Session, filter: QuestionFilter | None = None) -> int:
     try:
+        if filter is None:
+            filter = QuestionFilter()
         query = filter.filter(select(func.count(Question.id)))
         result = db.execute(query).scalars().one()
     except Exception as error:
@@ -143,3 +159,16 @@ def delete_question(db: Session, id: int) -> SuccessResult:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(error)
         )
     return SuccessResult(success=True)
+
+
+def get_random_question(db: Session) -> QuestionRead:
+    try:
+        count = count_question(db)
+        question = get_questions(db=db, offset=randint(0, count - 1), limit=1)
+        result = question[0]
+    except Exception as error:
+        print(error)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(error)
+        )
+    return result
