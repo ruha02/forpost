@@ -1,7 +1,7 @@
 from core.database import get_db
 from core.exception import NotFound
 from core.schema import Pagination, SuccessResult
-from depends import current_active_user, current_admin_user
+from depends import current_active_user
 from fastapi import APIRouter, Depends
 from schemas import (
     Message,
